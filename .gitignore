@@ -1,0 +1,9 @@
+.idea/
+env/
+main/settings_local.py
+media/
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
