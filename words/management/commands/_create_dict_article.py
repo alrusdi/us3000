@@ -1,6 +1,6 @@
 import requests
-from main import settings_local as settings
 import os
+from django.conf import settings
 
 
 class Word:
@@ -15,6 +15,9 @@ class Word:
                         language, self.word.lower()))
         response_text = ''
 
+        if ' ' in self.word:
+            return "Word contains space", response_text
+
         try:
             r = requests.get(url, headers={'app_id': app_id, 'app_key': app_key})
             r.raise_for_status()
@@ -28,6 +31,7 @@ class Word:
             else:
                 status_message = 'HTTP error occurred. Response is: {}'.format(
                     err.response.content.decode())
+                raise
         return status_message, response_text
 
     def get_abs_file_path(self):
