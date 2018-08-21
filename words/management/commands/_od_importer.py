@@ -14,8 +14,6 @@ class Word:
         if ' ' in self.word:
             return "Word contains space", response_text
 
-        print(app_id, app_key)
-
         try:
             r = requests.get(url, headers={'app_id': app_id,
                                            'app_key': app_key})
