@@ -12,7 +12,8 @@ class Command(BaseCommand):
         dir_path = os.path.join(settings.BASE_DIR, 'media', 'od')
         app_id = settings.OXFORD_DICTIONARY_APP_ID
         app_key = settings.OXFORD_DICTIONARY_APP_KEY
-        for i in range(655, 660):
+        number_of_requested_articles = 60
+        for i in range(number_of_requested_articles):
             word = Word(words[i])
             response_status = word.create_word_article(dir_path,
                                                        app_id,
