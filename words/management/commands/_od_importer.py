@@ -1,6 +1,4 @@
 import requests
-# import os
-# from django.conf import settings
 
 
 class Word:
@@ -8,8 +6,6 @@ class Word:
         self.word = word
 
     def get_article(self, app_id, app_key):
-        # app_id = settings.OXFORD_DICTIONARY_APP_ID
-        # app_key = settings.OXFORD_DICTIONARY_APP_KEY
         language = 'en'
         url = '/'.join(('https://od-api.oxforddictionaries.com:443/api/v1/entries',
                         language, self.word.lower()))
@@ -37,9 +33,6 @@ class Word:
                 raise
         return status_message, response_text
 
-    # def get_abs_file_path(self):
-    #     full_filename = '.'.join((self.word, 'json'))
-    #     return os.path.join(settings.BASE_DIR, 'media', 'od', full_filename)
     def make_abs_path(self, abs_dir_path):
         return '{}/{}.json'.format(abs_dir_path, self.word)
 

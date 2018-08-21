@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 import os
-from ._create_dict_article import Word
+from ._od_importer import Word
 from ._words import words
 
 
