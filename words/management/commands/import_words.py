@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 import os
-from ._od_importer import Word
+from ._od_importer import ODImporter
 from ._words import words
 import time
 
@@ -18,7 +18,7 @@ class Command(BaseCommand):
         number_of_requested_articles = 5
         for i in range(number_of_requested_articles):
             iteration_id = i % 2
-            word = Word(words[i])
+            word = ODImporter(words[i])
             response_status = word.create_word_article(dir_path,
                                                        app_id[iteration_id],
                                                        app_key[iteration_id])

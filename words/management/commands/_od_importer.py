@@ -1,7 +1,7 @@
 import requests
 
 
-class Word:
+class ODImporter:
     def __init__(self, word):
         self.word = word
 
