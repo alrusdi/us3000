@@ -4,6 +4,8 @@ import queue
 import threading
 from ._words import words
 import time
+import os
+from django.conf import settings
 
 
 class ForvoImporter(object):
@@ -44,19 +46,33 @@ class ForvoImporter(object):
             # TODO обработать исключения
         items = forvo_data.get('items', [])
         assert len(items) > 0
-        item_saved = 0
+        item_number = 0
         for item in items:
             if item['code'] != 'en' or item['country'] != 'United States':
                 continue
-            self.save_result(item)
-            item_saved += 1
-            if item_saved > 4:
+            self.save_result(item, item_number) # , dir_path)
+            item_number += 1
+            if item_number > 4:
                 break
 
-    def save_result(self, item):
-        print('result:', self.word)
-        # 1. Извлечь URL mp3 из item
-        # 2. Сохранить его в директорию с названием слова
+    def save_result(self, item, item_number):
+        mp3_path = item.get('pathmp3').replace('\/', '/')
+        file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
+        dir_path = os.path.join(settings.BASE_DIR, 'media',
+                                'sounds', self.word)
+        full_path = '{}/{}'.format(dir_path, file_name)
+        print(full_path)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        try:
+            mp3 = requests.get(mp3_path, stream=True)
+        except Exception as e:
+            print(e)
+            # TODO обработать исключения
+            raise
+        if mp3.status_code == 200:
+            with open(full_path, 'wb') as f:
+                f.write(mp3.content)
 
 
 class MultithreadingParser:
