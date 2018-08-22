@@ -61,6 +61,7 @@ class ForvoImporter(object):
         dir_path = os.path.join(settings.BASE_DIR, 'media',
                                 'sounds', self.word)
         full_path = '{}/{}'.format(dir_path, file_name)
+
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         try:
