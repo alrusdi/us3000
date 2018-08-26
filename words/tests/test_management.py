@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.test import TestCase, override_settings
 from fudge.inspector import arg
-
 from words.management.commands._od_importer import ODImporter
 import fudge
 
@@ -13,7 +12,6 @@ class FakeRequestsResponse:
 
     def raise_for_status(self):
         pass
-
 
 
 class ODImporterTest(TestCase):
@@ -30,18 +28,29 @@ class ODImporterTest(TestCase):
                                          settings.OXFORD_DICTIONARY_APP_KEY_1)
         self.assertEqual(msg, 'Data successfully saved')
 
-    def test_2(self):
-        #Что будет если произойдет Connection Error
-        # raises - передать исключение
-        print('Test2')
+    @fudge.patch('words.management.commands._od_importer.requests.get')
+    def test_uses_requests_to_raise_connection_error(self, fake_get):
+        fake_get.expects_call().raises(requests.exceptions.ConnectionError)
+        test_word = ODImporter('second')
+        msg, res = test_word.get_article('', '')
+        self.assertEqual(msg, 'Connection error')
 
-    def test_3(self):
-        # Что будет если вернется 404
-        pass
+    @fudge.patch('words.management.commands._od_importer.requests.get')
+    def test_uses_requests_to_raise_404_error(self, fake_get):
+        http_error = 404
+        fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        test_word = ODImporter('third')
+        msg, res = test_word.get_article('', '')
+        self.assertEqual(msg, 'Specified word does not exist in Oxford Dictionary')
 
-    def test_4(self):
-        # Что будет если вернется другая http ошибка
-        pass
+    @fudge.patch('words.management.commands._od_importer.requests.get')
+    def test_uses_requests_to_raise_not_404_http_error(self, fake_get):
+        http_error = 418
+        fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        test_word = ODImporter('fourth')
+        msg, res = test_word.get_article('', '')
+        self.assertEqual(msg, 'HTTP error {} occurred'.format(
+            requests.exceptions.HTTPError(http_error)))
 
     def test_positive_case(self):
         # Что будет если корректные параметры переданы и ошибок не произошло
@@ -51,13 +60,22 @@ class ODImporterTest(TestCase):
         # Убедиться что функция 'create_word_article' сохраняет файлы в нужную директорию
         pass
 
-    def test_6(self):
-        # что будет если директория недоступна на запись
-        pass
+    @fudge.patch('words.management.commands._od_importer.os.path.exists')
+    @fudge.patch('words.management.commands._od_importer.os.access')
+    def test_write_permissions_of_working_dir(self, fake_path_exists,
+                                              fake_dir_access):
+        fake_path_exists.expects_call().returns(True)
+        fake_dir_access.expects_call().returns(False)
+        test_word = ODImporter('sixth')
+        msg = test_word.create_word_article('', '', '')
+        self.assertEqual(msg, "Permission denied: ''")
 
-    def test_7(self):
-        # Что будет если abs_path_dir == None
-        pass
+    @fudge.patch('words.management.commands._od_importer.os.path.exists')
+    def test_is_working_dir_exist(self, fake_path_exists):
+        fake_path_exists.expects_call().returns(False)
+        test_word = ODImporter('seventh')
+        msg = test_word.create_word_article('', '', '')
+        self.assertEqual(msg, "Path does not exist: ''")
 
 
 class ForvoImporterTest(TestCase):
