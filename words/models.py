@@ -57,6 +57,7 @@ class WordLearningState(models.Model):
     )
     user = models.ForeignKey(
         "auth.User",
+        on_delete=models.CASCADE,
         verbose_name='Пользователь'
     )
     is_user_know_meaning = models.BooleanField(
