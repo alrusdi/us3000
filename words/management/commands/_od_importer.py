@@ -1,4 +1,5 @@
 import requests
+import os
 
 
 class ODImporter:
@@ -23,12 +24,10 @@ class ODImporter:
         except requests.exceptions.ConnectionError:
             status_message = 'Connection error'
         except requests.exceptions.HTTPError as err:
-            if r.status_code == 404:
+            if str(err) == '404':
                 status_message = 'Specified word does not exist in Oxford Dictionary'
             else:
-                status_message = 'HTTP error occurred. Response is: {}'.format(
-                    err.response.content.decode())
-                raise
+                status_message = 'HTTP error {} occurred'.format(err)
         return status_message, response_text
 
     def make_abs_path(self, abs_dir_path):
@@ -39,6 +38,10 @@ class ODImporter:
             f.write(word_dict)
 
     def create_word_article(self, abs_dir_path, app_id, app_key):
+        if not os.path.exists(abs_dir_path):
+            return "Path does not exist: '{}'".format(abs_dir_path)
+        if not os.access(abs_dir_path, os.W_OK):
+            return "Permission denied: '{}'".format(abs_dir_path)
         status_message, word_article = self.get_article(app_id, app_key)
         if word_article != '':
             abs_file_path = self.make_abs_path(abs_dir_path)

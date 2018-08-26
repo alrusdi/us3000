@@ -3,6 +3,7 @@ from django.test import TestCase, override_settings
 from fudge.inspector import arg
 from words.management.commands._od_importer import ODImporter
 import fudge
+import requests
 
 
 class FakeRequestsResponse:
