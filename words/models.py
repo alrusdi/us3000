@@ -29,6 +29,7 @@ class Word(models.Model):
 class Pronunciation(models.Model):
     word = models.ForeignKey(
         Word,
+        on_delete=models.CASCADE,
         verbose_name='Слово'
     )
     audio = models.CharField(
@@ -51,6 +52,7 @@ class Pronunciation(models.Model):
 class WordLearningState(models.Model):
     word = models.ForeignKey(
         Word,
+        on_delete=models.CASCADE,
         verbose_name='Слово'
     )
     user = models.ForeignKey(
