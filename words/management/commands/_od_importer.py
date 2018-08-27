@@ -35,8 +35,10 @@ class ODImporter:
 
     @classmethod
     def save_article(cls, file_path, word_dict):
-        with open(file_path, 'w') as f:
-            f.write(word_dict)
+        import pdb; pdb.set_trace()
+        aaa = open(file_path, 'w')
+        aaa.write(word_dict)
+        aaa.close()
 
     def create_word_article(self, abs_dir_path, app_id, app_key):
         if not os.path.exists(abs_dir_path):

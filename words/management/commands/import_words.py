@@ -11,11 +11,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dir_path = os.path.join(settings.BASE_DIR, 'media', 'od')
-        app_id = (settings.OXFORD_DICTIONARY_APP_ID_1,
-                  settings.OXFORD_DICTIONARY_APP_ID_2)
-        app_key = (settings.OXFORD_DICTIONARY_APP_KEY_1,
-                   settings.OXFORD_DICTIONARY_APP_KEY_2)
-        number_of_requested_articles = 3
+        app_id = settings.OXFORD_DICTIONARY_APP_ID
+        app_key = settings.OXFORD_DICTIONARY_APP_KEY
+        number_of_requested_articles = 3000
         number_of_consecutive_errors = 0
         for i in range(number_of_requested_articles):
             iteration_id = i % 2
