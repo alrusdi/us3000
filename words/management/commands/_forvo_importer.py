@@ -50,7 +50,7 @@ class ForvoImporter(object):
         for item in items:
             if item['code'] != 'en' or item['country'] != 'United States':
                 continue
-            self.save_result(item, item_number) # , dir_path)
+            self.save_result(item, item_number)
             item_number += 1
             if item_number > 4:
                 break
@@ -61,7 +61,7 @@ class ForvoImporter(object):
         dir_path = os.path.join(settings.BASE_DIR, 'media',
                                 'sounds', self.word)
         full_path = '{}/{}'.format(dir_path, file_name)
-        print(full_path)
+
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         try:
@@ -73,6 +73,9 @@ class ForvoImporter(object):
         if mp3.status_code == 200:
             with open(full_path, 'wb') as f:
                 f.write(mp3.content)
+            print(("Pronunciation example number {} for word"
+                   " {} successfully saved").format(
+                item_number + 1, str(self.word).capitalize()))
 
 
 class MultithreadingParser:
@@ -85,9 +88,9 @@ class MultithreadingParser:
         for i, word in enumerate(words):
             if ' ' in word:
                 continue
-            if i == 5:
+            if i == 3:
                 break
-            print(word, 'added to queue')
+            # print(word, 'added to queue')
             q.put_nowait(word)
         return q
 
@@ -95,22 +98,24 @@ class MultithreadingParser:
         # threads = []
         for i in range(self.threads_count-1):
             thread_name = 'thread_{}'.format(i + 1)
-            thread = threading.Thread(target=self.worker, args=(thread_name, ), daemon=True)
+            thread = threading.Thread(
+                target=self.worker, args=(thread_name, ), daemon=True)
             thread.start()
-            # threads.append(thread)
+        # threads.append(thread)
         # for thread in threads:
         #     thread.join()
         while True:
             if self.queue.qsize() < 1:
                 break
-            print('Queue size is {} and {} so far..'.format(self.queue.qsize(), threading.active_count()))
+            # print('Queue size is {} and {} so far..'.format(
+            #    self.queue.qsize(), threading.active_count()))
             time.sleep(1)
 
     def worker(self, thread_name):
         while True:
             try:
                 task = self.queue.get(block=True)
-                print('task, thread_name:', task, thread_name)
+                # print('task, thread_name:', task, thread_name)
                 time.sleep(1)
             except queue.Empty:
                 return
