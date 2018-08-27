@@ -33,7 +33,8 @@ class ODImporter:
     def make_abs_path(self, abs_dir_path):
         return '{}/{}.json'.format(abs_dir_path, self.word)
 
-    def save_article(self, file_path, word_dict):
+    @classmethod
+    def save_article(cls, file_path, word_dict):
         with open(file_path, 'w') as f:
             f.write(word_dict)
 
