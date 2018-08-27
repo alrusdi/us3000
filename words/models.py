@@ -6,7 +6,7 @@ class Word(models.Model):
         max_length=50,
         verbose_name='Слово'
     )
-    meaning = models.TextField(
+    general_meaning = models.TextField(
         verbose_name='Значение'
     )
     spelling = models.CharField(
@@ -26,14 +26,34 @@ class Word(models.Model):
         verbose_name_plural = "Слова"
 
 
+class Meaning(models.Model):
+    word = models.ForeignKey(
+        Word,
+        on_delete=models.CASCADE,
+        verbose_name='Слово'
+    )
+    value = models.TextField(
+        verbose_name='Значение'
+    )
+
+    def __str__(self):
+        if self.value is None:
+            return ''
+        return self.value[:20]
+
+    class Meta:
+        verbose_name = "Доп. значение"
+        verbose_name_plural = "Доп. значения"
+
+
 class Pronunciation(models.Model):
     word = models.ForeignKey(
         Word,
         on_delete=models.CASCADE,
         verbose_name='Слово'
     )
-    audio = models.CharField(
-        max_length=250,
+    audio = models.FileField(
+        upload_to='media/audio',
         verbose_name='Произношение'
     )
     is_active = models.BooleanField(
