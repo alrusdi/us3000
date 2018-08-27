@@ -20,7 +20,7 @@ class ODImporterTest(TestCase):
     @override_settings(OXFORD_DICTIONARY_APP_ID_1='test_app_id',
                        OXFORD_DICTIONARY_APP_KEY_1='test_app_key')
     def test_uses_requests_to_get_article_from_od(self, fake_get):
-        url = 'od-api.oxforddictionaries.com'
+        url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'test_app_id', 'app_key': 'test_app_key'}
         fake_get.expects_call().with_args(arg.contains(
             url), headers=expected_headers).returns(FakeRequestsResponse('{}'))
@@ -60,7 +60,7 @@ class ODImporterTest(TestCase):
     @fudge.patch('words.management.commands._od_importer.ODImporter.save_article')
     def test_positive_case(self, fake_get, fake_path_exists,
                            fake_dir_access, fake_abs_path, fake_save_article):
-        url = 'od-api.oxforddictionaries.com'
+        url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'another_test_app_id',
                             'app_key': 'another_test_app_key'}
         fake_get.expects_call().with_args(arg.contains(
