@@ -12,7 +12,7 @@ class ForvoImporter(object):
     def __init__(self, word):
         self.word = word
 
-    def import_sound(self):
+    def get_html_from_forvo(self):
         url = 'https://api.forvo.com/demo'
         data = {
             "action": "word-pronunciations",
@@ -25,25 +25,95 @@ class ForvoImporter(object):
             "username": "",
             "word": self.word
         }
-        result = requests.post(url, data=data)
+        try:
+            result = requests.post(url, data=data)
+            result.raise_for_status()
+            if result.status_code == 200:
+                return str(result.content)
+        except Exception as e:
+            print(e)
+            return
         # TODO Проверить корректность ответа (статус 200)
-        html = str(result.content)
+
+    @classmethod
+    def get_raw_json_from_html(cls, html):
         div_pos = html.find('class="intro"')
         if not div_pos > 0:
             raise Exception('Unexpected HTML Response from Forvo')
         pre_open_pos = html.find('pre', div_pos)
-
         assert pre_open_pos > div_pos
         pre_close_pos = html.find('pre', pre_open_pos + 1)
         assert pre_close_pos > pre_open_pos
-        raw_json = html[pre_open_pos + 5:pre_close_pos - 3]
+        return html[pre_open_pos + 5:pre_close_pos - 3]
+
+    @classmethod
+    def normalize_raw_json(cls, raw_json):
         json_str = raw_json.replace('&quot;', '"')
         try:
-            forvo_data = json.loads(json_str)
+            return json.loads(json_str)
         except Exception as e:
             print(e)
             raise
             # TODO обработать исключения
+
+    @classmethod
+    def get_path_to_mp3_from_json(cls, item):
+        mp3_url_key = 'pathmp3'
+        return item.get(mp3_url_key).replace('\/', '/')
+
+    def create_word_dir(self):
+        dir_path = os.path.join(settings.BASE_DIR, 'media',
+                                'sounds', self.word)
+        if not os.path.exists(dir_path):
+            try:
+                os.makedirs(dir_path)
+            except PermissionError as e:
+                print(e)
+                return
+        if not os.access(dir_path, os.W_OK):
+            return "Permission denied: '{}'".format(dir_path)
+        return dir_path
+
+    def create_mp3_full_path(self, dir_path, item_number):
+        mp3_file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
+        return os.path.join(dir_path, mp3_file_name)
+
+    @classmethod
+    def get_mp3_from_forvo(cls, mp3_url):
+        try:
+            mp3 = requests.get(mp3_url, stream=True)
+            if mp3.status_code == 200:
+                return mp3.content
+        except Exception as e:
+            print(e)
+            # TODO обработать исключения
+            return
+
+    @classmethod
+    def save_mp3(cls, mp3_full_path, mp3):
+        with open(mp3_full_path, 'wb') as f:
+            f.write(mp3)
+        return True
+
+    def save_result(self, item, item_number):
+        mp3_url = self.get_path_to_mp3_from_json(item)
+        word_dir_path = self.create_word_dir()
+        if word_dir_path is None:
+            return
+        mp3_full_path = self.create_mp3_full_path(word_dir_path, item_number)
+        mp3 = self.get_mp3_from_forvo(mp3_url)
+        mp3_successfully_saved = self.save_mp3(mp3_full_path, mp3)
+        if mp3_successfully_saved:
+            print(("Pronunciation example number {} for word"
+                   " {} successfully saved").format(
+                item_number + 1, str(self.word).capitalize()))
+        else:
+            print('Something went wrong. MP3 has not been saved')
+
+    def import_sound(self):
+        html = self.get_html_from_forvo()
+        raw_json = self.get_raw_json_from_html(html)
+        forvo_data = self.normalize_raw_json(raw_json)
         items = forvo_data.get('items', [])
         assert len(items) > 0
         item_number = 0
@@ -54,28 +124,6 @@ class ForvoImporter(object):
             item_number += 1
             if item_number > 4:
                 break
-
-    def save_result(self, item, item_number):
-        mp3_path = item.get('pathmp3').replace('\/', '/')
-        file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
-        dir_path = os.path.join(settings.BASE_DIR, 'media',
-                                'sounds', self.word)
-        full_path = '{}/{}'.format(dir_path, file_name)
-
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        try:
-            mp3 = requests.get(mp3_path, stream=True)
-        except Exception as e:
-            print(e)
-            # TODO обработать исключения
-            raise
-        if mp3.status_code == 200:
-            with open(full_path, 'wb') as f:
-                f.write(mp3.content)
-            print(("Pronunciation example number {} for word"
-                   " {} successfully saved").format(
-                item_number + 1, str(self.word).capitalize()))
 
 
 class MultithreadingParser:
