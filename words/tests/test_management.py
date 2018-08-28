@@ -103,22 +103,86 @@ class ODImporterTest(TestCase):
 
 
 class ForvoImporterTest(TestCase):
-    def setUp(self):
-        print('FVSetup')
+    def test_1(self):
+        # проверить что метод 'get_html_from_forvo' получает корректные данные
+        # при отправке корректного запроса
+        pass
 
-    @classmethod
-    def setUpClass(cls):
-        print('FVSetupClass')
+    def test_2(self):
+        # что будет, если произойдет ConnectionError
+        pass
 
-    def tearDown(self):
-        print('FVtearDown')
+    def test_3(self):
+        # что будет, если вернется http ошибка
+        pass
 
-    @classmethod
-    def tearDownClass(cls):
-        print('FVtearDownClass')
+    def test_5(self):
+        # что будет, если нет прав на запись в директорию
+        pass
 
-    def test_test(self):
-        print('FVTest')
+    def test_6(self):
+        # что будет, если структура ответа от forvo изменилась
+        # и в html отсутствует тэг с классом "intro"
+        pass
 
-    def test_test2(self):
-        print('FVTest2')
+    def test_7(self):
+        # что будет, если структура ответа от forvo изменилась
+        # и тэг с классом "intro" теперь находися после тэга "pre"
+        pass
+
+    def test_8(self):
+        # что будет, если структура ответа от forvo изменилась
+        # и в html отсутствует тэг pre
+        pass
+
+    def test_9(self):
+        # что будет, если в json отсутствует ключ "item"
+        pass
+
+    def test_10(self):
+        # что будет, если в словаре "item" отсутствует ключ "pathmp3"
+        pass
+
+    def test_11(self):
+        # проверить что создается директория с именем конкретного слова
+        pass
+
+    def test_12(self):
+        # что будет, если директория с именем конкретного слова уже существует
+        pass
+
+    def test_13(self):
+        # проверить, есть ли доступ "запись" в директорию
+        # с именем конкретного слова
+        pass
+
+    def test_14(self):
+        # проверить что имя полного пути для файла создается корректно
+        pass
+
+    def test_15(self):
+        # проверить что скачивается корректный mp3 файл, если переданы
+        # корректные параметры
+        pass
+
+    def test_16(self):
+        # что если при скачивании mp3 возникнет ConnectionError
+        pass
+
+    def test_17(self):
+        # что если при скачивании mp3 возникнет ошибка http
+        pass
+
+    def test_18(self):
+        # что будет, если в словаре items у ключей code и
+        # country отсутствуют занчения en и United States соответственно
+        pass
+
+    def test_19(self):
+        # Убедиться что функция 'save_result' сохраняет файлы
+        # в нужную директорию
+        pass
+
+    def test_positive_case(self):
+        # проверить что будет, если все хорошо
+        pass
