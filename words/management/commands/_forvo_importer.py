@@ -29,17 +29,20 @@ class ForvoImporter(object):
             result = requests.post(url, data=data)
             result.raise_for_status()
             if result.status_code == 200:
-                return str(result.content)
-        except Exception as e:
-            print(e)
-            return
-        # TODO Проверить корректность ответа (статус 200)
+                return str(result.text)
+        except requests.exceptions.ConnectionError:
+            print('Connection error')
+        except requests.exceptions.HTTPError as err:
+            print('Following http error occurred:', err)
 
     @classmethod
     def get_raw_json_from_html(cls, html):
+        print(html)
         div_pos = html.find('class="intro"')
         if not div_pos > 0:
-            raise Exception('Unexpected HTML Response from Forvo')
+            print('Unexpected HTML Response from Forvo')
+            return None
+            # raise Exception('Unexpected HTML Response from Forvo')
         pre_open_pos = html.find('pre', div_pos)
         assert pre_open_pos > div_pos
         pre_close_pos = html.find('pre', pre_open_pos + 1)
@@ -112,7 +115,11 @@ class ForvoImporter(object):
 
     def import_sound(self):
         html = self.get_html_from_forvo()
+        if html is None:
+            return
         raw_json = self.get_raw_json_from_html(html)
+        if raw_json is None:
+            return
         forvo_data = self.normalize_raw_json(raw_json)
         items = forvo_data.get('items', [])
         assert len(items) > 0
