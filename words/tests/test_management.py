@@ -18,16 +18,16 @@ class FakeRequestsResponse:
 
 class ODImporterTest(TestCase):
     @fudge.patch('words.management.commands._od_importer.requests.get')
-    @override_settings(OXFORD_DICTIONARY_APP_ID_1='test_app_id',
-                       OXFORD_DICTIONARY_APP_KEY_1='test_app_key')
+    @override_settings(OXFORD_DICTIONARY_APP_ID='test_app_id',
+                       OXFORD_DICTIONARY_APP_KEY='test_app_key')
     def test_uses_requests_to_get_article_from_od(self, fake_get):
         url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'test_app_id', 'app_key': 'test_app_key'}
         fake_get.expects_call().with_args(arg.contains(
             url), headers=expected_headers).returns(FakeRequestsResponse('{}'))
         test_word = ODImporter('something')
-        msg, res = test_word.get_article(settings.OXFORD_DICTIONARY_APP_ID_1,
-                                         settings.OXFORD_DICTIONARY_APP_KEY_1)
+        msg, res = test_word.get_article(settings.OXFORD_DICTIONARY_APP_ID,
+                                         settings.OXFORD_DICTIONARY_APP_KEY)
         self.assertEqual(msg, 'Data successfully saved')
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
@@ -78,13 +78,13 @@ class ODImporterTest(TestCase):
                                             'another_test_app_key')
         self.assertEqual(msg, 'Data successfully saved')
 
-    # @fudge.patch('builtins.open')
-    # def test_save_files_to_proper_dir(self, fake_open):
-    #     fake_file = fudge.Fake().is_a_stub().provides("write").expects_call()
-    #     fake_open.returns(fake_file)
-    #     test_word = ODImporter('fifth')
-    #     msg = test_word.save_article('', '')
-    #     self.assertEqual(msg, '1')
+    @fudge.patch('builtins.open')
+    def test_save_files_to_proper_dir(self, fake_open):
+        fake_file = fudge.Fake().provides("write").is_callable()
+        fake_open.expects_call().is_a_stub().returns(fake_file)
+        test_word = ODImporter('fifth')
+        msg = test_word.save_article('', '')
+        self.assertEqual(msg, '1')
     # Убедиться что функция 'create_word_article' сохраняет файлы в нужную директорию
 
     @fudge.patch('words.management.commands._od_importer.os.path.exists')
