@@ -126,3 +126,51 @@ STATIC_URL = '/static/'
 OXFORD_DICTIONARY_APP_ID = ''
 
 OXFORD_DICTIONARY_APP_KEY = ''
+
+# https://docs.djangoproject.com/en/2.1/topics/email/
+
+ADMINS = [('John', 'anatolijplotnikov1@google.com')]
+
+# Logging: https://docs.djangoproject.com/en/2.1/topics/logging/
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s %(levelname)s %(message)s'
+        }
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'debug.log'),
+            'formatter': 'default'
+        },
+        'term': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        },
+        'syslog': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'default',
+            'address': '/dev/log'
+        },
+        'mail_admin': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'default',
+            'include_html': True
+        }
+    },
+    'loggers': {
+        'test_loggers': {
+            'handlers': ['file', 'term'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
