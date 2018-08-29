@@ -76,7 +76,8 @@ class ODImporterTest(TestCase):
 
     # @fudge.patch('builtins.open')
     # def test_save_files_to_proper_dir(self, fake_open):
-    #     fake_file = fudge.Fake().provides("write").is_callable()
+    #     fake_file = fudge.Fake().is_a_stub()
+    #     fake_file.provides("write").is_callable()
     #     fake_open.expects_call().is_a_stub().returns(fake_file)
     #     test_word = ODImporter('fifth')
     #     msg = test_word.save_article('', '')
@@ -140,7 +141,7 @@ class ForvoImporterTest(TestCase):
         # что будет, если нет прав на запись в директорию
         pass
 
-    def test_if_forvo_reply_does_not_contain_class_intro(self):
+    def test_if_forvo_reply_does_not_contain_class_intro(self): # html не соответствует тому что мы ожидали
         html = '<html><div class="no_intro">some data</div></html>'
         test_word = ForvoImporter('something')
         res = test_word.get_raw_json_from_html(html)
@@ -149,7 +150,7 @@ class ForvoImporterTest(TestCase):
         # и в html отсутствует тэг с классом "intro"
         pass
 
-    def test_7(self):
+    def test_7(self): # один тест для проверки html
         # что будет, если структура ответа от forvo изменилась
         # и тэг с классом "intro" теперь находися после тэга "pre"
         pass
@@ -160,6 +161,7 @@ class ForvoImporterTest(TestCase):
         pass
 
     def test_9(self):
+        # что будет если json не корректный
         # что будет, если в json отсутствует ключ "item"
         pass
 
@@ -190,11 +192,11 @@ class ForvoImporterTest(TestCase):
         pass
 
     def test_16(self):
-        # что если при скачивании mp3 возникнет ConnectionError
+        # что если при скачивании mp3 возникнет ошибка
         pass
 
     def test_17(self):
-        # что если при скачивании mp3 возникнет ошибка http
+        # что если при скачивании mp3 возникнет ошибка http - убрать
         pass
 
     def test_18(self):
