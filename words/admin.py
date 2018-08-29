@@ -1,13 +1,15 @@
 from django.contrib import admin
 from django.db import models
 from django.forms.widgets import Input
-from words.models import Word, Pronunciation, Meaning
+from words.models import Word, Pronunciation, Meaning, WordLearningState
 
 
 class AudioWidget(Input):
     def render(self, name, value, attrs=None, renderer=None):
         html = super(AudioWidget, self).render(name, value, attrs, renderer)
-        html = '<div style="display: none">{}</div> <audio src="/media/{}" controls></audio>'.format(html, value)
+        html = ('<div style="display: none">{}</div>'
+                '<audio src="/media/{}" controls></audio>').format(html,
+                                                                   value)
         return html
 
 
@@ -24,12 +26,14 @@ class MeaningInline(admin.TabularInline):
     max_num = 1
 
 
+class WordLearningStateInline(admin.TabularInline):
+    model = WordLearningState
+
+
 @admin.register(Word)
 class WordAdmin(admin.ModelAdmin):
     inlines = (
         MeaningInline,
         PronunciationInline,
+        WordLearningStateInline,
     )
-
-
-
