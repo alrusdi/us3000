@@ -55,12 +55,9 @@ class ODImporterTest(TestCase):
             requests.exceptions.HTTPError(http_error)))
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
-    # @fudge.patch('words.management.commands._od_importer.os.path.exists')
-    # @fudge.patch('words.management.commands._od_importer.os.access')
     @fudge.patch('words.management.commands._od_importer.ODImporter.make_abs_path')
     @fudge.patch('words.management.commands._od_importer.ODImporter.save_article')
     def test_positive_case(self, fake_get, fake_abs_path, fake_save_article):
-        #(self, fake_get, fake_path_exists, fake_dir_access, fake_abs_path, fake_save_article):
         url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'another_test_app_id',
                             'app_key': 'another_test_app_key'}
@@ -69,8 +66,6 @@ class ODImporterTest(TestCase):
         fake_get.expects_call().with_args(arg.contains(
             url), headers=expected_headers).returns(
             FakeRequestsResponse('{"article": "article"}'))
-        # fake_path_exists.expects_call().returns(True)
-        # fake_dir_access.expects_call().returns(True)
         fake_abs_path.expects_call().returns('')
         fake_save_article.expects_call().returns(None)
         test_word = ODImporter('fifth')
