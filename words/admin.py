@@ -28,6 +28,7 @@ class MeaningInline(admin.TabularInline):
 
 class WordLearningStateInline(admin.TabularInline):
     model = WordLearningState
+# TODO для данного класса сделать отдельную админку
 
 
 @admin.register(Word)
