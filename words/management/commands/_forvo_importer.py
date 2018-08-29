@@ -58,6 +58,9 @@ class ForvoImporter(object):
             print(e)
             raise
             # TODO обработать исключения
+        # добавить метод validate_data для того что бы быть уверенным, что
+        # нужные ключи присутствуют в json. Умеет определять правильный json
+        #  и умееот отсчитаться о неправильном
 
     @classmethod
     def get_path_to_mp3_from_json(cls, item):
