@@ -31,7 +31,8 @@ class ODImporter:
         return status_message, response_text
 
     def make_abs_path(self, abs_dir_path):
-        return '{}/{}.json'.format(abs_dir_path, self.word)
+        file_name = '{}.json'.format(self.word)
+        return os.path.join(abs_dir_path, file_name)
 
     @classmethod
     def save_article(cls, file_path, word_dict):

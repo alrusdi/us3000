@@ -4,6 +4,7 @@ from fudge.inspector import arg
 from words.management.commands._od_importer import ODImporter
 import fudge
 import requests
+import os
 
 
 class FakeRequestsResponse:
@@ -63,6 +64,8 @@ class ODImporterTest(TestCase):
         url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'another_test_app_id',
                             'app_key': 'another_test_app_key'}
+        dir_path = os.path.join(settings.BASE_DIR, 'media',
+                                'sounds')
         fake_get.expects_call().with_args(arg.contains(
             url), headers=expected_headers).returns(
             FakeRequestsResponse('{"article": "article"}'))
