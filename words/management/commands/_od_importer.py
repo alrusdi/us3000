@@ -1,5 +1,9 @@
 import requests
 import os
+import logging
+
+
+logger_od_fails = logging.getLogger("od_fails")
 
 
 class ODImporter:

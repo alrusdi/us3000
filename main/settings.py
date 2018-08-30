@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from cloghandler import ConcurrentRotatingFileHandler
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -129,7 +130,7 @@ OXFORD_DICTIONARY_APP_KEY = ''
 
 # https://docs.djangoproject.com/en/2.1/topics/email/
 
-ADMINS = [('John', 'anatolijplotnikov1@google.com')]
+ADMINS = [('John', 'John@example.com')]
 
 # Logging: https://docs.djangoproject.com/en/2.1/topics/logging/
 
@@ -142,13 +143,23 @@ LOGGING = {
         }
     },
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'debug.log'),
-            'formatter': 'default'
+        'forvo_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'forvo.log'),
+            'formatter': 'default',
+            'maxBytes': 1024*1024,
+            'backupCount': 3
         },
-        'term': {
+        'od_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'od.log'),
+            'formatter': 'default',
+            'maxBytes': 1024*1024,
+            'backupCount': 3
+        },
+        'console': {
             'level': 'ERROR',
             'class': 'logging.StreamHandler',
             'formatter': 'default'
@@ -167,9 +178,14 @@ LOGGING = {
         }
     },
     'loggers': {
-        'test_loggers': {
-            'handlers': ['file', 'term'],
-            'level': 'DEBUG',
+        'forvo_fails': {
+            'handlers': ['forvo_log', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'od_fails': {
+            'handlers': ['od_log', 'console'],
+            'level': 'INFO',
             'propagate': True,
         },
     },

@@ -6,6 +6,10 @@ from ._words import words
 import time
 import os
 from django.conf import settings
+import logging
+
+
+logger_od_fails = logging.getLogger("forvo_fails")
 
 
 class ForvoImporter(object):
@@ -31,9 +35,9 @@ class ForvoImporter(object):
             if result.status_code == 200:
                 return str(result.text)
         except requests.exceptions.ConnectionError:
-            print('Connection error')
+            logger_od_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            print('Following http error occurred:', err)
+            logger_od_fails.error('Following http error occurred:', err)
 
     @classmethod
     def get_raw_json_from_html(cls, html):
