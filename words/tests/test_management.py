@@ -42,9 +42,9 @@ class ODImporterTest(TestCase):
     def test_uses_requests_to_raise_404_error(self, fake_get):
         http_error = 404
         fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
-        test_word = ODImporter('third')
+        test_word = ODImporter('qwerty')
         msg, res = test_word.get_article('', '')
-        self.assertEqual(msg, 'Specified word does not exist in Oxford Dictionary')
+        self.assertEqual(msg, 'Word "qwerty" does not exist in Oxford Dictionary')
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
     def test_uses_requests_to_raise_not_404_http_error(self, fake_get):
@@ -52,7 +52,7 @@ class ODImporterTest(TestCase):
         fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
         test_word = ODImporter('fourth')
         msg, res = test_word.get_article('', '')
-        self.assertEqual(msg, 'HTTP error {} occurred'.format(
+        self.assertEqual(msg, 'HTTP error occurred: {}'.format(
             requests.exceptions.HTTPError(http_error)))
 
     @fudge.patch('words.management.commands._od_importer.requests.get')

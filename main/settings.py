@@ -140,14 +140,17 @@ LOGGING = {
     'formatters': {
         'default': {
             'format': '%(asctime)s %(levelname)s %(message)s'
-        }
+        },
+        'unsaved_words': {
+            'format': '%(message)s'
+        },
     },
     'handlers': {
         'forvo_log': {
             'level': 'INFO',
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'forvo.log'),
-            'formatter': 'default',
+            'formatter': 'unsaved_words',
             'maxBytes': 1024*1024,
             'backupCount': 3
         },
@@ -155,6 +158,14 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'od.log'),
+            'formatter': 'unsaved_words',
+            'maxBytes': 1024*1024,
+            'backupCount': 3
+        },
+        'general_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'general.log'),
             'formatter': 'default',
             'maxBytes': 1024*1024,
             'backupCount': 3
@@ -179,12 +190,17 @@ LOGGING = {
     },
     'loggers': {
         'forvo_fails': {
-            'handlers': ['forvo_log', 'console'],
+            'handlers': ['forvo_log'],
             'level': 'INFO',
             'propagate': True,
         },
         'od_fails': {
-            'handlers': ['od_log', 'console'],
+            'handlers': ['od_log'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'general': {
+            'handlers': ['general_log', 'console'],
             'level': 'INFO',
             'propagate': True,
         },
