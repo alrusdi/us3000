@@ -36,6 +36,11 @@ class Pronunciation(models.Model):
         max_length=250,
         verbose_name='Произношение'
     )
+    raw_od_data = models.TextField(
+        verbose_name='Сырые данные с OD',
+        blank=True,
+        null=True
+    )
     is_active = models.BooleanField(
         default=True,
         verbose_name='Используется'
