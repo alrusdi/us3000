@@ -56,6 +56,11 @@ class Pronunciation(models.Model):
         upload_to='media/audio',
         verbose_name='Произношение'
     )
+    raw_od_data = models.TextField(
+        verbose_name='Сырые данные с OD',
+        blank=True,
+        null=True
+    )
     is_active = models.BooleanField(
         default=True,
         verbose_name='Используется'
