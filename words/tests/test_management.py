@@ -73,13 +73,25 @@ class ODImporterTest(TestCase):
                                             'another_test_app_key')
         self.assertEqual(msg, 'Data successfully saved')
 
-    # @fudge.patch('builtins.open')
-    # def test_save_files_to_proper_dir(self, fake_open):
-    #     fake_file = fudge.Fake().provides("write").is_callable()
-    #     fake_open.expects_call().is_a_stub().returns(fake_file)
-    #     test_word = ODImporter('fifth')
-    #     msg = test_word.save_article('', '')
-    #     self.assertEqual(msg, '1')
+    @fudge.patch('words.management.commands._od_importer.builtins')
+    def test_save_files_to_proper_dir(self, fake_builtins):
+        fake_file = fudge.Fake().is_a_stub()
+        fake_file.provides("write").is_callable()
+        class FakeContextManager:
+            def __init__(self, *args, **kwargs):
+                # assert передан ли правильный путь
+                pass
+
+            def __enter__(self):
+                return fake_file
+
+            def __exit__(self, *args):
+                pass
+
+        fake_builtins.provides("open").returns(FakeContextManager())
+        test_word = ODImporter('fifth')
+        msg = test_word.save_article('', '')
+        self.assertEqual(msg, '1')  # не использовать
     # Убедиться что функция 'create_word_article' сохраняет файлы в нужную директорию
 
     @fudge.patch('words.management.commands._od_importer.os.path.exists')
