@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.test import TestCase, override_settings
 from fudge.inspector import arg
+from words.management.commands._forvo_importer import ForvoImporter
 from words.management.commands._od_importer import ODImporter
 import fudge
 import requests
@@ -113,22 +114,112 @@ class ODImporterTest(TestCase):
 
 
 class ForvoImporterTest(TestCase):
-    def setUp(self):
-        print('FVSetup')
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_uses_requests_to_get_html_from_forvo(self, fake_post):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "first"
+        }
+        fake_post.expects_call().with_args(arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse('some html code'))
+        test_word = ForvoImporter('first')
+        res = test_word.get_html_from_forvo()
+        self.assertEqual(res, 'some html code')
+        # проверить что метод 'get_html_from_forvo' получает корректные данные
+        # при отправке корректного запроса
 
-    @classmethod
-    def setUpClass(cls):
-        print('FVSetupClass')
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_uses_requests_to_raise_connection_error(self, fake_post):
+        fake_post.expects_call().raises(requests.exceptions.ConnectionError)
+        test_word = ForvoImporter('second')
+        res = test_word.get_html_from_forvo()
+        self.assertEqual(res, 'Connection error')
+        # что будет, если произойдет ConnectionError
 
-    def tearDown(self):
-        print('FVtearDown')
+    def test_3(self):
+        # что будет, если вернется http ошибка
+        pass
 
-    @classmethod
-    def tearDownClass(cls):
-        print('FVtearDownClass')
+    def test_5(self):
+        # что будет, если нет прав на запись в директорию
+        pass
 
-    def test_test(self):
-        print('FVTest')
+    def test_if_forvo_reply_does_not_contain_class_intro(self): # html не соответствует тому что мы ожидали
+        html = '<html><div class="no_intro">some data</div></html>'
+        test_word = ForvoImporter('something')
+        res = test_word.get_raw_json_from_html(html)
+        self.assertEqual(res, '1111111111')
+        # что будет, если структура ответа от forvo изменилась
+        # и в html отсутствует тэг с классом "intro"
+        pass
 
-    def test_test2(self):
-        print('FVTest2')
+    def test_7(self): # один тест для проверки html
+        # что будет, если структура ответа от forvo изменилась
+        # и тэг с классом "intro" теперь находися после тэга "pre"
+        pass
+
+    def test_8(self):
+        # что будет, если структура ответа от forvo изменилась
+        # и в html отсутствует тэг pre
+        pass
+
+    def test_9(self):
+        # что будет если json не корректный
+        # что будет, если в json отсутствует ключ "item"
+        pass
+
+    def test_10(self):
+        # что будет, если в словаре "item" отсутствует ключ "pathmp3"
+        pass
+
+    def test_11(self):
+        # проверить что создается директория с именем конкретного слова
+        pass
+
+    def test_12(self):
+        # что будет, если директория с именем конкретного слова уже существует
+        pass
+
+    def test_13(self):
+        # проверить, есть ли доступ "запись" в директорию
+        # с именем конкретного слова
+        pass
+
+    def test_14(self):
+        # проверить что имя полного пути для файла создается корректно
+        pass
+
+    def test_15(self):
+        # проверить что скачивается корректный mp3 файл, если переданы
+        # корректные параметры
+        pass
+
+    def test_16(self):
+        # что если при скачивании mp3 возникнет ошибка
+        pass
+
+    def test_17(self):
+        # что если при скачивании mp3 возникнет ошибка http - убрать
+        pass
+
+    def test_18(self):
+        # что будет, если в словаре items у ключей code и
+        # country отсутствуют занчения en и United States соответственно
+        pass
+
+    def test_19(self):
+        # Убедиться что функция 'save_result' сохраняет файлы
+        # в нужную директорию
+        pass
+
+    def test_positive_case(self):
+        # проверить что будет, если все хорошо
+        pass
