@@ -9,7 +9,8 @@ from django.conf import settings
 import logging
 
 
-logger_od_fails = logging.getLogger("forvo_fails")
+logger_forvo_fails = logging.getLogger("forvo_fails")
+logger_general_fails = logging.getLogger("general")
 
 
 class ForvoImporter(object):
@@ -35,41 +36,66 @@ class ForvoImporter(object):
             if result.status_code == 200:
                 return str(result.text)
         except requests.exceptions.ConnectionError:
-            logger_od_fails.error('Connection error')
+            logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            logger_od_fails.error('Following http error occurred:', err)
+            logger_general_fails.error('Following http error occurred:', err)
+        logger_forvo_fails.error(self.word)
 
-    @classmethod
-    def get_raw_json_from_html(cls, html):
-        print(html)
-        div_pos = html.find('class="intro"')
-        if not div_pos > 0:
-            print('Unexpected HTML Response from Forvo')
-            return None
-            # raise Exception('Unexpected HTML Response from Forvo')
-        pre_open_pos = html.find('pre', div_pos)
-        assert pre_open_pos > div_pos
-        pre_close_pos = html.find('pre', pre_open_pos + 1)
-        assert pre_close_pos > pre_open_pos
-        return html[pre_open_pos + 5:pre_close_pos - 3]
+    def get_raw_json_from_html(self, html):
+        try:
+            div_pos = html.find('class="intro"')
+            assert div_pos > 0
+            pre_open_pos = html.find('pre', div_pos)
+            assert pre_open_pos > div_pos
+            pre_close_pos = html.find('pre', pre_open_pos + 1)
+            assert pre_close_pos > pre_open_pos
+            return html[pre_open_pos + 5:pre_close_pos - 3]
+        except AssertionError:
+            logger_general_fails.error('Unexpected HTML Response from Forvo')
+            logger_forvo_fails.error(self.word)
 
-    @classmethod
-    def normalize_raw_json(cls, raw_json):
+    def normalize_raw_json(self, raw_json):
         json_str = raw_json.replace('&quot;', '"')
         try:
             return json.loads(json_str)
-        except Exception as e:
-            print(e)
-            raise
-            # TODO обработать исключения
+        except ValueError:
+            logger_general_fails.error('Response from Forvo has'
+                                       ' unexpected JSON format')
+            logger_forvo_fails.error(self.word)
         # добавить метод validate_data для того что бы быть уверенным, что
         # нужные ключи присутствуют в json. Умеет определять правильный json
         #  и умееот отсчитаться о неправильном
 
-    @classmethod
-    def get_path_to_mp3_from_json(cls, item):
-        mp3_url_key = 'pathmp3'
-        return item.get(mp3_url_key).replace('\/', '/')
+    def validate_forvo_json(self, json_str):  # убрать?
+        try:
+            assert json_str.get('items') is not None
+            assert json_str.get('items').get('pathmp3') is not None
+            return True
+        except AssertionError:
+            logger_general_fails.error('Response from Forvo has'
+                                       ' unexpected JSON format')
+            logger_forvo_fails.error(self.word)
+
+    def get_items_from_forvo_json(self, forvo_json):
+        try:
+            items = forvo_json.get('items', [])
+            assert len(items) > 0
+            return items
+        except AssertionError:
+            logger_general_fails.error('Response from Forvo has'
+                                       ' unexpected JSON format')
+            logger_forvo_fails.error(self.word)
+
+    def get_path_to_mp3_from_json(self, item):
+        try:
+            mp3_url_key = 'pathmp3'
+            mp3_url = item.get(mp3_url_key, [])
+            assert len(mp3_url) > 0
+            return mp3_url.replace('\/', '/')
+        except AssertionError:
+            logger_general_fails.error('Response from Forvo has'
+                                       ' unexpected JSON format')
+            logger_forvo_fails.error(self.word)
 
     def create_word_dir(self):
         dir_path = os.path.join(settings.BASE_DIR, 'media',
@@ -127,9 +153,12 @@ class ForvoImporter(object):
         raw_json = self.get_raw_json_from_html(html)
         if raw_json is None:
             return
-        forvo_data = self.normalize_raw_json(raw_json)
-        items = forvo_data.get('items', [])
-        assert len(items) > 0
+        forvo_json = self.normalize_raw_json(raw_json)
+        if forvo_json is None:
+            return
+        # if not self.validate_forvo_json(forvo_json): # убрать?
+        #     return
+        items = self.get_items_from_forvo_json(forvo_json)
         item_number = 0
         for item in items:
             if item['code'] != 'en' or item['country'] != 'United States':
