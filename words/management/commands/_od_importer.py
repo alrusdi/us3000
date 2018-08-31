@@ -1,6 +1,7 @@
 import requests
 import os
 import logging
+import builtins
 
 
 logger_od_fails = logging.getLogger("od_fails")
@@ -41,7 +42,8 @@ class ODImporter:
 
     @classmethod
     def save_article(cls, file_path, word_dict):
-        with open(file_path, 'w') as f:
+        # We use builtins.open here instead of just "open" to ease patch it in tests
+        with builtins.open(file_path, 'w') as f:
             f.write(word_dict)
 
     def create_word_article(self, abs_dir_path, app_id, app_key):
