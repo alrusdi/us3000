@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from cloghandler import ConcurrentRotatingFileHandler
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -104,9 +105,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -126,3 +127,82 @@ STATIC_URL = '/static/'
 OXFORD_DICTIONARY_APP_ID = ''
 
 OXFORD_DICTIONARY_APP_KEY = ''
+
+# https://docs.djangoproject.com/en/2.1/topics/email/
+
+ADMINS = [('John', 'John@example.com')]
+
+# Logging: https://docs.djangoproject.com/en/2.1/topics/logging/
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s %(levelname)s %(message)s'
+        },
+        'unsaved_words': {
+            'format': '%(message)s'
+        },
+    },
+    'handlers': {
+        'forvo_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'forvo.log'),
+            'formatter': 'unsaved_words',
+            'maxBytes': 1024*1024,
+            'backupCount': 3
+        },
+        'od_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'od.log'),
+            'formatter': 'unsaved_words',
+            'maxBytes': 1024*1024,
+            'backupCount': 3
+        },
+        'general_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'general.log'),
+            'formatter': 'default',
+            'maxBytes': 1024*1024,
+            'backupCount': 3
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        },
+        'syslog': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'default',
+            'address': '/dev/log'
+        },
+        'mail_admin': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'default',
+            'include_html': True
+        }
+    },
+    'loggers': {
+        'forvo_fails': {
+            'handlers': ['forvo_log'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'od_fails': {
+            'handlers': ['od_log'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'general': {
+            'handlers': ['general_log', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

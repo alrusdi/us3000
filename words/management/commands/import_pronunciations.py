@@ -7,4 +7,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         MultithreadingParser().run()
-        self.stdout.write(self.style.SUCCESS('Everything is ok'))
+        self.stdout.write(self.style.SUCCESS('Task completed'))
