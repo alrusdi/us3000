@@ -42,15 +42,13 @@ class ForvoImporter(object):
         logger_forvo_fails.error(self.word)
 
     def get_raw_json_from_html(self, html):
-        try:
-            div_pos = html.find('class="intro"')
-            assert div_pos > 0
-            pre_open_pos = html.find('pre', div_pos)
-            assert pre_open_pos > div_pos
-            pre_close_pos = html.find('pre', pre_open_pos + 1)
-            assert pre_close_pos > pre_open_pos
+        print(html)
+        div_pos = html.find('class="intro"')
+        pre_open_pos = html.find('pre', div_pos)
+        pre_close_pos = html.find('pre', pre_open_pos + 1)
+        if 0 < div_pos < pre_open_pos < pre_close_pos:
             return html[pre_open_pos + 5:pre_close_pos - 3]
-        except AssertionError:
+        else:
             logger_general_fails.error('Unexpected HTML Response from Forvo')
             logger_forvo_fails.error(self.word)
 
@@ -62,89 +60,92 @@ class ForvoImporter(object):
             logger_general_fails.error('Response from Forvo has'
                                        ' unexpected JSON format')
             logger_forvo_fails.error(self.word)
-        # добавить метод validate_data для того что бы быть уверенным, что
-        # нужные ключи присутствуют в json. Умеет определять правильный json
-        #  и умееот отсчитаться о неправильном
-
-    def validate_forvo_json(self, json_str):  # убрать?
-        try:
-            assert json_str.get('items') is not None
-            assert json_str.get('items').get('pathmp3') is not None
-            return True
-        except AssertionError:
-            logger_general_fails.error('Response from Forvo has'
-                                       ' unexpected JSON format')
-            logger_forvo_fails.error(self.word)
 
     def get_items_from_forvo_json(self, forvo_json):
-        try:
-            items = forvo_json.get('items', [])
-            assert len(items) > 0
+        items = forvo_json.get('items', [])
+        if len(items) > 0:
             return items
-        except AssertionError:
+        else:
             logger_general_fails.error('Response from Forvo has'
                                        ' unexpected JSON format')
             logger_forvo_fails.error(self.word)
 
-    def get_path_to_mp3_from_json(self, item):
-        try:
-            mp3_url_key = 'pathmp3'
-            mp3_url = item.get(mp3_url_key, [])
-            assert len(mp3_url) > 0
+    def get_mp3_url_from_json(self, item):
+        mp3_url_key = 'pathmp3'
+        mp3_url = item.get(mp3_url_key, [])
+        if len(mp3_url) > 0:
             return mp3_url.replace('\/', '/')
-        except AssertionError:
+        else:
             logger_general_fails.error('Response from Forvo has'
                                        ' unexpected JSON format')
             logger_forvo_fails.error(self.word)
 
-    def create_word_dir(self):
-        dir_path = os.path.join(settings.BASE_DIR, 'media',
-                                'sounds', self.word)
-        if not os.path.exists(dir_path):
-            try:
-                os.makedirs(dir_path)
-            except PermissionError as e:
-                print(e)
-                return
-        if not os.access(dir_path, os.W_OK):
-            return "Permission denied: '{}'".format(dir_path)
-        return dir_path
-
-    def create_mp3_full_path(self, dir_path, item_number):
-        mp3_file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
-        return os.path.join(dir_path, mp3_file_name)
-
-    @classmethod
-    def get_mp3_from_forvo(cls, mp3_url):
+    def get_mp3_from_forvo(self, mp3_url):
         try:
             mp3 = requests.get(mp3_url, stream=True)
             if mp3.status_code == 200:
                 return mp3.content
-        except Exception as e:
-            print(e)
-            # TODO обработать исключения
-            return
+        except requests.exceptions.ConnectionError:
+            logger_general_fails.error('Connection error')
+        except requests.exceptions.HTTPError as err:
+            logger_general_fails.error('Following http error occurred:', err)
+        logger_forvo_fails.error(self.word)
+
+    @classmethod
+    def make_abs_sounds_dir_path(cls):
+        return os.path.join(settings.BASE_DIR, 'media', 'sounds')
+
+    @classmethod
+    def is_path_exist(cls, dir_path):
+        return os.path.exists(dir_path)
+
+    @classmethod
+    def is_there_dir_write_permissions(cls, dir_path):
+        return os.access(dir_path, os.W_OK)
+
+    def make_word_dir_path(self, sounds_dir_path):
+        return os.path.join(sounds_dir_path, self.word)
+
+    @classmethod
+    def create_word_dir(cls, dir_path):
+        return os.mkdir(dir_path)
+
+    def make_mp3_abs_path(self, dir_path, item_number):
+        mp3_file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
+        return os.path.join(dir_path, mp3_file_name)
 
     @classmethod
     def save_mp3(cls, mp3_full_path, mp3):
         with open(mp3_full_path, 'wb') as f:
             f.write(mp3)
-        return True
+            return True
+
+    def write_to_log(self, log_message):
+        logger_general_fails.error(log_message)
+        logger_forvo_fails.error(self.word)
 
     def save_result(self, item, item_number):
-        mp3_url = self.get_path_to_mp3_from_json(item)
-        word_dir_path = self.create_word_dir()
-        if word_dir_path is None:
+        mp3_url = self.get_mp3_url_from_json(item)
+        if mp3_url is None:
             return
-        mp3_full_path = self.create_mp3_full_path(word_dir_path, item_number)
         mp3 = self.get_mp3_from_forvo(mp3_url)
-        mp3_successfully_saved = self.save_mp3(mp3_full_path, mp3)
-        if mp3_successfully_saved:
-            print(("Pronunciation example number {} for word"
-                   " {} successfully saved").format(
-                item_number + 1, str(self.word).capitalize()))
-        else:
-            print('Something went wrong. MP3 has not been saved')
+        if mp3 is None:
+            return
+        abs_sounds_dir_path = self.make_abs_sounds_dir_path()
+        if not self.is_path_exist(abs_sounds_dir_path):
+            self.write_to_log("Path does not exist: '{}'".format(
+                abs_sounds_dir_path))
+            return
+        if not self.is_there_dir_write_permissions(abs_sounds_dir_path):
+            self.write_to_log("Permission denied: '{}'".format(
+                abs_sounds_dir_path))
+            return
+        word_dir_path = self.make_word_dir_path(abs_sounds_dir_path)
+        if not self.is_path_exist(word_dir_path):
+            self.create_word_dir(word_dir_path)
+        mp3_abs_path = self.make_mp3_abs_path(word_dir_path, item_number)
+        if self.save_mp3(mp3_abs_path, mp3) is None:
+            self.write_to_log('Something went wrong')
 
     def import_sound(self):
         html = self.get_html_from_forvo()
@@ -156,12 +157,13 @@ class ForvoImporter(object):
         forvo_json = self.normalize_raw_json(raw_json)
         if forvo_json is None:
             return
-        # if not self.validate_forvo_json(forvo_json): # убрать?
-        #     return
         items = self.get_items_from_forvo_json(forvo_json)
+        if items is None:
+            return
         item_number = 0
         for item in items:
-            if item['code'] != 'en' or item['country'] != 'United States':
+            if item.get('code', '') != 'en' or item.get(
+                    'country', '') != 'United States':
                 continue
             self.save_result(item, item_number)
             item_number += 1

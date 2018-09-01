@@ -141,21 +141,12 @@ class ForvoImporterTest(TestCase):
         # что будет, если нет прав на запись в директорию
         pass
 
-    def test_if_forvo_reply_does_not_contain_class_intro(self): # html не соответствует тому что мы ожидали
-        html = '<html><div class="no_intro">some data</div></html>'
-        test_word = ForvoImporter('something')
+    def test_if_forvo_has_unexpected_structure(self): # html не соответствует тому что мы ожидали
+        html = '<html><div class="not_intro"><pre>some data</pre></div></html>'
+        test_word = ForvoImporter('another something')
         res = test_word.get_raw_json_from_html(html)
         self.assertEqual(res, None)
         # что будет, если структура ответа от forvo изменилась
-        # и в html отсутствует тэг с классом "intro"
-
-    def test_if_forvo_reply_does_not_contain_class_intro1(self): # html не соответствует тому что мы ожидали
-        html = '<html><div class="intro">some data</div></html>'
-        test_word = ForvoImporter('something')
-        res = test_word.get_raw_json_from_html(html)
-        self.assertEqual(res, '11111111111')
-        # что будет, если структура ответа от forvo изменилась
-        # и в html отсутствует тэг с классом "intro"
 
     def test_7(self): # один тест для проверки html
         # что будет, если структура ответа от forvo изменилась
