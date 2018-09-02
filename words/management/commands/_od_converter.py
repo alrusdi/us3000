@@ -32,12 +32,17 @@ def convert_str_to_dict(json_str, word):
 
 def get_meaning_from_json(json_word, word):
     try:
-        meanings = json_word.get('results')[0].get('lexicalEntries')[0].get(
-            'entries')[0].get('senses')[0].get('definitions')
+        sense = json_word.get('results')[0].get('lexicalEntries')[0].get(
+            'entries')[0].get('senses')[0]
+        meanings = sense.get('definitions')
         if meanings is not None:
             return meanings[0]
-        return json_word.get('results')[0].get('lexicalEntries')[0].get(
-            'entries')[0].get('senses')[0].get('short_definitions')[0]
+        meanings = sense.get('short_definitions')
+        if meanings is not None:
+            return meanings[0]
+        meanings = sense.get('crossReferenceMarkers')
+        if meanings is not None:
+            return meanings[0]
     except AttributeError:
         logger_general_fails.error('Unexpected JSON format')
     except TypeError:
@@ -47,9 +52,18 @@ def get_meaning_from_json(json_word, word):
 
 def get_spelling_from_json(json_word, word):
     try:
-        return json_word.get('results')[0].get('lexicalEntries')[0].get(
-            'pronunciations')[0].get('phoneticSpelling')
+        lexical_entry = json_word.get('results')[0].get('lexicalEntries')[0]
+        pronunciations = lexical_entry.get('pronunciations')
+        if pronunciations is not None:
+            return pronunciations[0].get('phoneticSpelling')
+        entries = lexical_entry.get('entries')
+        if entries is not None:
+            return entries[0].get('pronunciations')[0].get('phoneticSpelling')
+        phonetic_spelling = entries[0].get('pronunciations')[1].get('phoneticSpelling')
+        if phonetic_spelling is not None:
+            return phonetic_spelling
     except AttributeError:
+        print('wtf2')
         logger_general_fails.error('Unexpected JSON format')
     except TypeError:
         logger_general_fails.error('Unexpected JSON format')
@@ -80,8 +94,8 @@ def save_fixture(file_path, data):
 
 def create_fixture():
     words_fixture = []
-    work_dir_path = concat_path(settings.BASE_DIR,  # replace '/home/t0lik/us3000/us3000_project'
-                                'media', 'od')                        # with settings.BASE_DIR,
+    work_dir_path = concat_path(settings.BASE_DIR,
+                                'media', 'od')
     files_list = get_files_list_in_dir(work_dir_path)
     for i, file in enumerate(files_list):
         word = file[:-5]
@@ -90,7 +104,7 @@ def create_fixture():
         json_dict = convert_str_to_dict(json_str, word)
         meaning = get_meaning_from_json(json_dict, word)
         spelling = get_spelling_from_json(json_dict, word)
-        word_dict = make_word_dict(i, word, meaning, spelling, json_dict)
+        word_dict = make_word_dict(i + 1, word, meaning, spelling, json_dict)
         add_word_to_fixture(words_fixture, word_dict)
         abs_fixture_path = concat_path(settings.BASE_DIR,
                                        'words', 'fixtures', 'words.json')
