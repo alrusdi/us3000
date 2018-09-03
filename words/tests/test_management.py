@@ -130,12 +130,16 @@ class ForvoImporterTest(TestCase):
         fake_post.expects_call().raises(requests.exceptions.ConnectionError)
         test_word = ForvoImporter('second')
         res = test_word.get_html_from_forvo()
-        self.assertEqual(res, 'Connection error')
+        self.assertEqual(res, None)
         # что будет, если произойдет ConnectionError
 
-    def test_3(self):
-        # что будет, если вернется http ошибка
-        pass
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_uses_requests_to_raise_http_error(self, fake_post):
+        http_error = 418
+        fake_post.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        test_word = ForvoImporter('third')
+        res = test_word.get_html_from_forvo()
+        self.assertEqual(res, None)
 
     def test_5(self):
         # что будет, если нет прав на запись в директорию

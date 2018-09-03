@@ -38,7 +38,7 @@ class ForvoImporter(object):
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            logger_general_fails.error('Following http error occurred:', err)
+            logger_general_fails.error('Following http error occurred: {}'.format(err))
         logger_forvo_fails.error(self.word)
 
     def get_raw_json_from_html(self, html):
