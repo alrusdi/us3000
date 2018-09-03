@@ -23,8 +23,7 @@ def get_data_from_file(path_to_file):
 
 def convert_str_to_dict(json_str, word):
     try:
-        a = json.loads(json_str)
-        return a
+        return json.loads(json_str)
     except json.decoder.JSONDecodeError:
         logger_general_fails.error('Unexpected JSON format')
         logger_od_convert_fails.error(word)
@@ -63,7 +62,6 @@ def get_spelling_from_json(json_word, word):
         if phonetic_spelling is not None:
             return phonetic_spelling
     except AttributeError:
-        print('wtf2')
         logger_general_fails.error('Unexpected JSON format')
     except TypeError:
         logger_general_fails.error('Unexpected JSON format')
