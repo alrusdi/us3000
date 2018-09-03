@@ -42,9 +42,9 @@ class ODImporterTest(TestCase):
     def test_uses_requests_to_raise_404_error(self, fake_get):
         http_error = 404
         fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
-        test_word = ODImporter('third')
+        test_word = ODImporter('qwerty')
         msg, res = test_word.get_article('', '')
-        self.assertEqual(msg, 'Specified word does not exist in Oxford Dictionary')
+        self.assertEqual(msg, 'Word "qwerty" does not exist in Oxford Dictionary')
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
     def test_uses_requests_to_raise_not_404_http_error(self, fake_get):
@@ -52,7 +52,7 @@ class ODImporterTest(TestCase):
         fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
         test_word = ODImporter('fourth')
         msg, res = test_word.get_article('', '')
-        self.assertEqual(msg, 'HTTP error {} occurred'.format(
+        self.assertEqual(msg, 'HTTP error occurred: {}'.format(
             requests.exceptions.HTTPError(http_error)))
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
@@ -141,14 +141,12 @@ class ForvoImporterTest(TestCase):
         # что будет, если нет прав на запись в директорию
         pass
 
-    def test_if_forvo_reply_does_not_contain_class_intro(self): # html не соответствует тому что мы ожидали
-        html = '<html><div class="no_intro">some data</div></html>'
-        test_word = ForvoImporter('something')
+    def test_if_forvo_has_unexpected_structure(self): # html не соответствует тому что мы ожидали
+        html = '<html><div class="not_intro"><pre>some data</pre></div></html>'
+        test_word = ForvoImporter('another something')
         res = test_word.get_raw_json_from_html(html)
-        self.assertEqual(res, '1111111111')
+        self.assertEqual(res, None)
         # что будет, если структура ответа от forvo изменилась
-        # и в html отсутствует тэг с классом "intro"
-        pass
 
     def test_7(self): # один тест для проверки html
         # что будет, если структура ответа от forvo изменилась
@@ -160,14 +158,35 @@ class ForvoImporterTest(TestCase):
         # и в html отсутствует тэг pre
         pass
 
+    def test_9_1(self):
+        raw_json = ('{&quot;items&quot;: &quot;value&quot;,'
+                    ' &quot;another_key&quot;: &quot;another_value&quot;}')
+        test_word = ForvoImporter('first json test')
+        res = test_word.normalize_raw_json(raw_json)
+        self.assertEqual(res, {'items': 'value',
+                               'another_key': 'another_value'})
+
     def test_9(self):
+        json = {'items': {'pathmp3': 'mp3_url'}}
+        test_word = ForvoImporter('json test')
+        res = test_word.validate_forvo_json(json)
+        self.assertEqual(res, True)
         # что будет если json не корректный
         # что будет, если в json отсутствует ключ "item"
-        pass
 
     def test_10(self):
+        json = {'items': {'pathmp3': 'mp3_url'}}
+        test_word = ForvoImporter('one more json test')
+        res = test_word.get_items_from_forvo_json(json)
+        self.assertEqual(res, {'pathmp3': 'mp3_url'})
         # что будет, если в словаре "item" отсутствует ключ "pathmp3"
-        pass
+
+    def test_10_1(self):
+        json = {'pathmp3': 'mp3_url\/\/\/\/\/'}
+        test_word = ForvoImporter('another json test')
+        res = test_word.get_path_to_mp3_from_json(json)
+        self.assertEqual(res, 'mp3_url/////')
+        # что будет, если в словаре "item" отсутствует ключ "pathmp3"
 
     def test_11(self):
         # проверить что создается директория с именем конкретного слова
