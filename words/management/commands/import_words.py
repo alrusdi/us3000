@@ -4,6 +4,11 @@ import os
 from ._od_importer import ODImporter
 from ._words import words
 import time
+import logging
+
+
+logger_od_fails = logging.getLogger("od_fails")
+logger_general_fails = logging.getLogger("general")
 
 
 class Command(BaseCommand):
@@ -18,19 +23,17 @@ class Command(BaseCommand):
         for i in range(number_of_requested_articles):
             iteration_id = i % 2
             word = ODImporter(words[i])
-            response_status = word.create_word_article(dir_path,
-                                                       app_id[iteration_id],
-                                                       app_key[iteration_id])
-            if response_status == 'Data successfully saved':
-                self.stdout.write(self.style.SUCCESS('{}. {}: {}'.format(
-                    i, word.word, response_status)))
+            response_message = word.create_word_article(dir_path,
+                                                        app_id[iteration_id],
+                                                        app_key[iteration_id])
+            if response_message == 'Data successfully saved':
                 number_of_consecutive_errors = 0
             else:
-                self.stdout.write(self.style.NOTICE('{}. {}: {}'.format(
-                    i, word.word, response_status)))
+                logger_general_fails.error(response_message)
+                logger_od_fails.info(word.word)
                 number_of_consecutive_errors += 1
                 if number_of_consecutive_errors > 5:
-                    self.stdout.write(self.style.NOTICE(
-                        'Too many consecutive errors. Exiting...'))
+                    logger_general_fails.error(
+                        '5 consecutive errors got. Script execution stopped.')
                     break
             time.sleep(1)
