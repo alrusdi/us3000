@@ -209,7 +209,6 @@ class ForvoImporterTest(TestCase):
         test_word = ForvoImporter('another json test')
         res = test_word.get_items_from_forvo_json(json)
         self.assertEqual(res, None)
-        # что будет, если в словаре "item" отсутствует ключ "pathmp3"
 
     def test_11(self):
         # проверить что создается директория с именем конкретного слова
