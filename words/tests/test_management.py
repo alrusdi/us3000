@@ -74,14 +74,25 @@ class ODImporterTest(TestCase):
                                             'another_test_app_key')
         self.assertEqual(msg, 'Data successfully saved')
 
-    # @fudge.patch('builtins.open')
-    # def test_save_files_to_proper_dir(self, fake_open):
-    #     fake_file = fudge.Fake().is_a_stub()
-    #     fake_file.provides("write").is_callable()
-    #     fake_open.expects_call().is_a_stub().returns(fake_file)
-    #     test_word = ODImporter('fifth')
-    #     msg = test_word.save_article('', '')
-    #     self.assertEqual(msg, '1')
+    @fudge.patch('words.management.commands._od_importer.builtins')
+    def test_save_files_to_proper_dir(self, fake_builtins):
+        fake_file = fudge.Fake().is_a_stub()
+        fake_file.provides("write").is_callable()
+        class FakeContextManager:
+            def __init__(self, *args, **kwargs):
+                # assert передан ли правильный путь
+                pass
+
+            def __enter__(self):
+                return fake_file
+
+            def __exit__(self, *args):
+                pass
+
+        fake_builtins.provides("open").returns(FakeContextManager())
+        test_word = ODImporter('fifth')
+        msg = test_word.save_article('', '')
+        self.assertEqual(msg, '1')  # не использовать
     # Убедиться что функция 'create_word_article' сохраняет файлы в нужную директорию
 
     @fudge.patch('words.management.commands._od_importer.os.path.exists')
@@ -104,6 +115,46 @@ class ODImporterTest(TestCase):
 
 class ForvoImporterTest(TestCase):
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    @fudge.patch('words.management.commands._forvo_importer.requests.get')
+    # TODO to replace 'fake_is_path_exist' and 'fake_save' functions with
+    # normal tests
+    @fudge.patch('words.management.commands._forvo_importer.'
+                 'ForvoImporter.is_path_exist')
+    @fudge.patch('words.management.commands._forvo_importer.'
+                 'ForvoImporter.save_mp3')
+    def test_positive_case(self, fake_post, fake_get,
+                           fake_is_path_exist, fake_save):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "first"
+        }
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse(
+                ('<html><div class="intro"><pre>'
+                 ' {&quot;items&quot;: ['
+                 '{&quot;code&quot;: &quot;en&quot;, '
+                 '&quot;country&quot;: &quot;United States&quot;, '
+                 '&quot;pathmp3&quot;: &quot;mp3\/url\/&quot;}'
+                 ']}'
+                 ' </pre></html>'))
+        )
+        fake_get.expects_call().returns(FakeRequestsResponse(b'0x11'))
+        fake_is_path_exist.expects_call().returns(True)
+        fake_save.expects_call().returns('wtf')
+        test_word = ForvoImporter('first')
+        res = test_word.import_sound()
+        self.assertEqual(res, None)
+
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
     def test_uses_requests_to_get_html_from_forvo(self, fake_post):
         url = 'api.forvo.com'
         expected_data = {
@@ -117,8 +168,10 @@ class ForvoImporterTest(TestCase):
             "username": "",
             "word": "first"
         }
-        fake_post.expects_call().with_args(arg.contains(url), data=expected_data).returns(
-            FakeRequestsResponse('some html code'))
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse('some html code')
+        )
         test_word = ForvoImporter('first')
         res = test_word.get_html_from_forvo()
         self.assertEqual(res, 'some html code')
@@ -126,67 +179,47 @@ class ForvoImporterTest(TestCase):
         # при отправке корректного запроса
 
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
-    def test_uses_requests_to_raise_connection_error(self, fake_post):
+    def test_uses_requests_to_raise_connection_error_html(self, fake_post):
         fake_post.expects_call().raises(requests.exceptions.ConnectionError)
         test_word = ForvoImporter('second')
         res = test_word.get_html_from_forvo()
-        self.assertEqual(res, 'Connection error')
+        self.assertEqual(res, None)
         # что будет, если произойдет ConnectionError
 
-    def test_3(self):
-        # что будет, если вернется http ошибка
-        pass
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_uses_requests_to_raise_http_error(self, fake_post):
+        http_error = 418
+        fake_post.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        test_word = ForvoImporter('third')
+        res = test_word.get_html_from_forvo()
+        self.assertEqual(res, None)
 
-    def test_5(self):
-        # что будет, если нет прав на запись в директорию
-        pass
-
-    def test_if_forvo_has_unexpected_structure(self): # html не соответствует тому что мы ожидали
-        html = '<html><div class="not_intro"><pre>some data</pre></div></html>'
-        test_word = ForvoImporter('another something')
+    def test_if_forvo_response_has_unexpected_structure(self):
+        html = '<html><div class="not_intro"><pr>some data</pr></div></html>'
+        test_word = ForvoImporter('fourth')
         res = test_word.get_raw_json_from_html(html)
         self.assertEqual(res, None)
-        # что будет, если структура ответа от forvo изменилась
+        # html не соответствует тому что мы ожидали
 
-    def test_7(self): # один тест для проверки html
-        # что будет, если структура ответа от forvo изменилась
-        # и тэг с классом "intro" теперь находися после тэга "pre"
-        pass
-
-    def test_8(self):
-        # что будет, если структура ответа от forvo изменилась
-        # и в html отсутствует тэг pre
-        pass
-
-    def test_9_1(self):
-        raw_json = ('{&quot;items&quot;: &quot;value&quot;,'
+    def test_if_json_from_forvo_has_correct_structure(self):
+        raw_json = ('{&quot;"items&quot;: &quot;value&quot;,'
                     ' &quot;another_key&quot;: &quot;another_value&quot;}')
-        test_word = ForvoImporter('first json test')
+        test_word = ForvoImporter('fifth')
         res = test_word.normalize_raw_json(raw_json)
-        self.assertEqual(res, {'items': 'value',
-                               'another_key': 'another_value'})
+        self.assertEqual(res, None)
 
-    def test_9(self):
-        json = {'items': {'pathmp3': 'mp3_url'}}
-        test_word = ForvoImporter('json test')
-        res = test_word.validate_forvo_json(json)
-        self.assertEqual(res, True)
-        # что будет если json не корректный
-        # что будет, если в json отсутствует ключ "item"
-
-    def test_10(self):
-        json = {'items': {'pathmp3': 'mp3_url'}}
-        test_word = ForvoImporter('one more json test')
+    def test_1_if_json_from_forvo_has_correct_required_keys(self):
+        json = {'item': {'pathmp3': 'mp3_url'}}
+        test_word = ForvoImporter('sixth')
         res = test_word.get_items_from_forvo_json(json)
-        self.assertEqual(res, {'pathmp3': 'mp3_url'})
-        # что будет, если в словаре "item" отсутствует ключ "pathmp3"
+        self.assertEqual(res, None)
+        # что будет если json не корректный
 
-    def test_10_1(self):
+    def test_2_if_json_from_forvo_has_correct_required_keys(self):
         json = {'pathmp3': 'mp3_url\/\/\/\/\/'}
         test_word = ForvoImporter('another json test')
-        res = test_word.get_path_to_mp3_from_json(json)
-        self.assertEqual(res, 'mp3_url/////')
-        # что будет, если в словаре "item" отсутствует ключ "pathmp3"
+        res = test_word.get_items_from_forvo_json(json)
+        self.assertEqual(res, None)
 
     def test_11(self):
         # проверить что создается директория с именем конкретного слова
@@ -196,38 +229,67 @@ class ForvoImporterTest(TestCase):
         # что будет, если директория с именем конкретного слова уже существует
         pass
 
+    @fudge.patch('words.management.commands._forvo_importer.ForvoImporter.is_path_exist')
+    def test_if_dir_path_exists(self, fake_is_path_exist):
+        fake_is_path_exist.expects_call().returns(False)
+        test_word = ForvoImporter('seventh')
+        res = test_word.is_path_exist('not/exist/mp3/path')
+        self.assertEqual(res, False)
+        # проверить, существует ли путь
+
+    @fudge.patch('words.management.commands._forvo_importer.'
+                 'ForvoImporter.is_there_dir_write_permissions')
+    def test_write_permission_of_working_dir(self, fake_write_permissions):
+        fake_write_permissions.expects_call().returns(False)
+        test_word = ForvoImporter('seventh')
+        res = test_word.is_there_dir_write_permissions('not/exist/mp3/path')
+        self.assertEqual(res, False)
+        # проверить, есть ли права записи
+
     def test_13(self):
         # проверить, есть ли доступ "запись" в директорию
         # с именем конкретного слова
         pass
 
-    def test_14(self):
+    def test_if_abs_mp3_path_is_created_correctly(self):
+        test_word = ForvoImporter('sixth')
+        test_path = test_word.make_mp3_abs_path('audio', 33)
+        self.assertEqual(test_path, 'audio/sixth_34.mp3')
         # проверить что имя полного пути для файла создается корректно
-        pass
 
-    def test_15(self):
+    @fudge.patch('words.management.commands._forvo_importer.requests.get')
+    def test_uses_requests_to_get_mp3_from_forvo(self, fake_get):
+        url = 'correct_mp3_url'
+        fake_get.expects_call().returns(FakeRequestsResponse('mp3'))
+        test_word = ForvoImporter('tenth')
+        res = test_word.get_mp3_from_forvo(url)
+        self.assertEqual(res, 'mp3')
         # проверить что скачивается корректный mp3 файл, если переданы
         # корректные параметры
-        pass
 
-    def test_16(self):
+    @fudge.patch('words.management.commands._forvo_importer.requests.get')
+    def test_uses_requests_to_raise_connection_error_mp3(self, fake_get):
+        url = 'correct/mp3/url'
+        fake_get.expects_call().raises(requests.exceptions.ConnectionError)
+        test_word = ForvoImporter('eleventh')
+        res = test_word.get_mp3_from_forvo(url)
+        self.assertEqual(res, None)
         # что если при скачивании mp3 возникнет ошибка
-        pass
 
-    def test_17(self):
-        # что если при скачивании mp3 возникнет ошибка http - убрать
-        pass
-
-    def test_18(self):
+    @fudge.patch('words.management.commands._forvo_importer.'
+                 'ForvoImporter.get_html_from_forvo')
+    def test_if_forvo_json_does_not_have_required_keys(self, fake_get_html):
+        fake_get_html.expects_call().returns(
+            ('<html><div class="intro"><pre> {&quot;items&quot;:'
+             ' [{&quot;pathmp3&quot;: &quot;mp3/url/&quot;}]} </pre></html>')
+        )
+        test_word = ForvoImporter('last')
+        res = test_word.import_sound()
+        self.assertEqual(res, None)
         # что будет, если в словаре items у ключей code и
         # country отсутствуют занчения en и United States соответственно
-        pass
 
     def test_19(self):
         # Убедиться что функция 'save_result' сохраняет файлы
         # в нужную директорию
-        pass
-
-    def test_positive_case(self):
-        # проверить что будет, если все хорошо
         pass
