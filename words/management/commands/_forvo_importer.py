@@ -83,7 +83,7 @@ class ForvoImporter(object):
         try:
             mp3 = requests.get(mp3_url, stream=True)
             if mp3.status_code == 200:
-                return mp3.text
+                return mp3.content
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
