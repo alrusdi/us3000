@@ -38,11 +38,10 @@ class ForvoImporter(object):
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            logger_general_fails.error('Following http error occurred:', err)
+            logger_general_fails.error('Following http error occurred: {}'.format(err))
         logger_forvo_fails.error(self.word)
 
     def get_raw_json_from_html(self, html):
-        print(html)
         div_pos = html.find('class="intro"')
         pre_open_pos = html.find('pre', div_pos)
         pre_close_pos = html.find('pre', pre_open_pos + 1)
@@ -84,11 +83,11 @@ class ForvoImporter(object):
         try:
             mp3 = requests.get(mp3_url, stream=True)
             if mp3.status_code == 200:
-                return mp3.content
+                return mp3.text
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            logger_general_fails.error('Following http error occurred:', err)
+            logger_general_fails.error('Following http error occurred: {}'.format(err))
         logger_forvo_fails.error(self.word)
 
     @classmethod
@@ -114,11 +113,12 @@ class ForvoImporter(object):
         mp3_file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
         return os.path.join(dir_path, mp3_file_name)
 
-    @classmethod
-    def save_mp3(cls, mp3_full_path, mp3):
-        with open(mp3_full_path, 'wb') as f:
-            f.write(mp3)
-            return True
+    def save_mp3(self, mp3_full_path, mp3):
+        try:
+            with open(mp3_full_path, 'wb') as f:
+                f.write(mp3)
+        except Exception as err:
+            self.write_to_log('Something went wrong: {}'.format(err))
 
     def write_to_log(self, log_message):
         logger_general_fails.error(log_message)
@@ -144,8 +144,7 @@ class ForvoImporter(object):
         if not self.is_path_exist(word_dir_path):
             self.create_word_dir(word_dir_path)
         mp3_abs_path = self.make_mp3_abs_path(word_dir_path, item_number)
-        if self.save_mp3(mp3_abs_path, mp3) is None:
-            self.write_to_log('Something went wrong')
+        self.save_mp3(mp3_abs_path, mp3)
 
     def import_sound(self):
         html = self.get_html_from_forvo()
@@ -215,6 +214,6 @@ class MultithreadingParser:
             fi = ForvoImporter(task)
             try:
                 fi.import_sound()
-            except Exception as e:
-                print(e)
+            except Exception as err:
+                logger_general_fails.error('Following error occurred: {}'.format(err))
             self.queue.task_done()
