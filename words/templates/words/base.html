@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Title</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static "build/vendor/uikit/css/uikit.css" %}" />
+        <script src="{% static "build/vendor/uikit/js/uikit.js" %}"></script>
+        <script src="{% static "build/vendor/uikit/js/uikit-icons.js" %}"></script>
+    </head>
+    <body>
+    <div class="uk-container uk-container-center uk-margin-top uk-margin-large-bottom">
+        {% block content %}
+        {% endblock %}
+    </div>
+    </body>
+</html>
