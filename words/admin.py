@@ -36,5 +36,9 @@ class WordAdmin(admin.ModelAdmin):
     inlines = (
         MeaningInline,
         PronunciationInline,
-        WordLearningStateInline,
     )
+
+
+@admin.register(WordLearningState)
+class WordLearningStateAdmin(admin.ModelAdmin):
+    pass
