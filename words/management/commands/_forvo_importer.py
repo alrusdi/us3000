@@ -117,6 +117,8 @@ class ForvoImporter(object):
         try:
             with open(mp3_full_path, 'wb') as f:
                 f.write(mp3)
+        except AssertionError:
+            raise  # for testing
         except Exception as err:
             self.write_to_log('Something went wrong: {}'.format(err))
 
