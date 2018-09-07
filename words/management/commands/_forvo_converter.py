@@ -8,7 +8,11 @@ def _concat_path(*args):
     return os.path.join(*args)
 
 
-def _get_files_and_dirs_list(dir_path):
+def make_json_filename(word):
+    return '{}.json'.format(word)
+
+
+def _get_dir_items_list(dir_path):
     return os.listdir(dir_path)
 
 
@@ -46,47 +50,39 @@ def _get_pronunc_from_json(json_word, word):
     # TODO replacing of print with logging is required
 
 
-def _get_word_id(word):
+def _get_word_model_value(word):
     return Word.objects.filter(value=word).first()
 
 
-def _save_data_to_db(word, word_mp3_path, pronunciation):
+def _save_data_to_db(word, word_mp3_path, pronunciation_dict):
     new_word = Pronunciation(word=word)
     new_word.audio = word_mp3_path
-    new_word.raw_od_data = pronunciation
+    new_word.raw_od_data = pronunciation_dict
     new_word.save()
-    print(word)
+    print(word)  # TODO remove in final version
 
 
-def create_model_instance():
+def add_data_to_pronunciation_model():
+    # TODO add checking if Pronunciation is already exist in db
     sounds_dir_path = _concat_path(settings.BASE_DIR, 'media', 'sounds')
-    words_sound_dirs_list = _get_files_and_dirs_list(sounds_dir_path)
-    i = 0
-    for word_sound_dir in words_sound_dirs_list:
-        abs_word_sound_dir_path = _concat_path(sounds_dir_path, word_sound_dir)
-        abs_word_od_path = _concat_path(settings.BASE_DIR, 'media', 'od',
-                                        word_sound_dir + '.json')  # TODO replace with normal function
-        word_id = _get_word_id(word_sound_dir)
-        i += 1
-        if word_id is None:
+    words_list = _get_dir_items_list(sounds_dir_path)
+    i = 0  # TODO remove in final version
+    for word in words_list:
+        abs_word_sound_dir_path = _concat_path(sounds_dir_path, word)
+        json_filename = make_json_filename(word)
+        abs_word_od_path = _concat_path(settings.BASE_DIR, 'media',
+                                        'od', json_filename)
+        word_model_value = _get_word_model_value(word)
+        i += 1  # TODO remove in final version
+        if word_model_value is None:
             continue
         od_json_str = _get_data_from_file(abs_word_od_path)
-        od_json_dict = _convert_str_to_dict(od_json_str, word_sound_dir)
-        word_pronunciation = _get_pronunc_from_json(od_json_dict, word_sound_dir)
-        word_mp3_list = _get_files_and_dirs_list(abs_word_sound_dir_path)
-        if i == 2:
-            break
+        od_json_dict = _convert_str_to_dict(od_json_str, word)
+        word_pronunciation_dict = _get_pronunc_from_json(od_json_dict, word)
+        word_mp3_list = _get_dir_items_list(abs_word_sound_dir_path)
+        if i == 2:  # TODO remove in final version
+            break  # TODO remove in final version
         for word_mp3 in word_mp3_list:
-            word_mp3_path = _concat_path('sounds', word_sound_dir, word_mp3)
-            _save_data_to_db(word_id, word_mp3_path, word_pronunciation)
-
-
-# получить список директорий внутри папки sounds
-# для каждой из этих директорий получить список файлов
-# построить относительный путь к каждому файлу
-# идти в БД и искать необходимое слово по value: word = Word.objects.filter(value='abandon')
-# создаем и сохраняем экземпляры модели произношений: word2 = Word(pronunciation='some pronunciation') word2.save()
-# первый вариант:
-# pron = Prononciation()
-# pron.word = Words.objects.get(value="someth")
-# если есть только id: pron.word_id = 12
+            word_mp3_path = _concat_path('sounds', word, word_mp3)
+            _save_data_to_db(word_model_value, word_mp3_path,
+                             word_pronunciation_dict)
