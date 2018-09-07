@@ -35,6 +35,10 @@ class Meaning(models.Model):
     value = models.TextField(
         verbose_name='Значение'
     )
+    order = models.PositiveIntegerField(
+        verbose_name="Порядок",
+        default=0
+    )
 
     def __str__(self):
         if self.value is None:
@@ -42,6 +46,7 @@ class Meaning(models.Model):
         return self.value[:20]
 
     class Meta:
+        ordering = ["order"]
         verbose_name = "Доп. значение"
         verbose_name_plural = "Доп. значения"
 
@@ -55,6 +60,11 @@ class Pronunciation(models.Model):
     audio = models.FileField(
         upload_to='media/audio',
         verbose_name='Произношение'
+    )
+    raw_od_data = models.TextField(
+        verbose_name='Сырые данные с OD',
+        blank=True,
+        null=True
     )
     is_active = models.BooleanField(
         default=True,
