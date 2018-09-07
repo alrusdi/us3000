@@ -6,6 +6,7 @@ from ._words import words
 import time
 import os
 from django.conf import settings
+from words.models import Pronunciation
 import logging
 
 
@@ -16,6 +17,9 @@ logger_general_fails = logging.getLogger("general")
 class ForvoImporter(object):
     def __init__(self, word):
         self.word = word
+
+    def check_if_pronunc_exist_in_db(self):
+        return Pronunciation.objects.filter(word__value=self.word).exists()
 
     def get_html_from_forvo(self):
         url = 'https://api.forvo.com/demo'
@@ -83,7 +87,7 @@ class ForvoImporter(object):
         try:
             mp3 = requests.get(mp3_url, stream=True)
             if mp3.status_code == 200:
-                return mp3.text
+                return mp3.content
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
@@ -149,6 +153,8 @@ class ForvoImporter(object):
         self.save_mp3(mp3_abs_path, mp3)
 
     def import_sound(self):
+        if self.check_if_pronunc_exist_in_db():
+            return
         html = self.get_html_from_forvo()
         if html is None:
             return
@@ -173,7 +179,7 @@ class ForvoImporter(object):
 
 
 class MultithreadingParser:
-    def __init__(self, threads_count=3):
+    def __init__(self, threads_count=30):
         self.threads_count = threads_count
         self.queue = self._make_queue()
 
@@ -182,7 +188,7 @@ class MultithreadingParser:
         for i, word in enumerate(words):
             if ' ' in word:
                 continue
-            if i == 3:
+            if i == 3200:
                 break
             # print(word, 'added to queue')
             q.put_nowait(word)
