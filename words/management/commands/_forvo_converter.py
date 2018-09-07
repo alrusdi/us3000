@@ -8,12 +8,16 @@ def _concat_path(*args):
     return os.path.join(*args)
 
 
-def make_json_filename(word):
+def _make_json_filename(word):
     return '{}.json'.format(word)
 
 
 def _get_dir_items_list(dir_path):
     return os.listdir(dir_path)
+
+
+def check_if_pronunc_exist_in_db(word):
+    return Pronunciation.objects.filter(word__value=word).exists()
 
 
 def _get_data_from_file(path_to_file):
@@ -68,8 +72,11 @@ def add_data_to_pronunciation_model():
     words_list = _get_dir_items_list(sounds_dir_path)
     i = 0  # TODO remove in final version
     for word in words_list:
+        if check_if_pronunc_exist_in_db(word):
+            print(word, 'is already exist')
+            continue
         abs_word_sound_dir_path = _concat_path(sounds_dir_path, word)
-        json_filename = make_json_filename(word)
+        json_filename = _make_json_filename(word)
         abs_word_od_path = _concat_path(settings.BASE_DIR, 'media',
                                         'od', json_filename)
         word_model_value = _get_word_model_value(word)
