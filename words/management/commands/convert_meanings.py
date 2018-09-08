@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from words.management.commands._meaning_convertor import add_data_to_meaning_model
+from words.management.commands._meaning_converter import add_data_to_meaning_model
 
 
 class Command(BaseCommand):
