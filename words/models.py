@@ -6,9 +6,6 @@ class Word(models.Model):
         max_length=50,
         verbose_name='Слово'
     )
-    general_meaning = models.TextField(
-        verbose_name='Значение'
-    )
     spelling = models.CharField(
         max_length=250,
         verbose_name='Транскрипция'
@@ -35,6 +32,10 @@ class Meaning(models.Model):
     value = models.TextField(
         verbose_name='Значение'
     )
+    order = models.PositiveIntegerField(
+        verbose_name="Порядок",
+        default=0
+    )
 
     def __str__(self):
         if self.value is None:
@@ -42,6 +43,7 @@ class Meaning(models.Model):
         return self.value[:20]
 
     class Meta:
+        ordering = ["order"]
         verbose_name = "Доп. значение"
         verbose_name_plural = "Доп. значения"
 
