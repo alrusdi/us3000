@@ -6,9 +6,6 @@ class Word(models.Model):
         max_length=50,
         verbose_name='Слово'
     )
-    general_meaning = models.TextField(
-        verbose_name='Значение'
-    )
     spelling = models.CharField(
         max_length=250,
         verbose_name='Транскрипция'
