@@ -6,6 +6,7 @@ from ._words import words
 import time
 import os
 from django.conf import settings
+from words.models import Pronunciation
 import logging
 
 
@@ -16,6 +17,9 @@ logger_general_fails = logging.getLogger("general")
 class ForvoImporter(object):
     def __init__(self, word):
         self.word = word
+
+    def check_if_pronunc_exist_in_db(self):
+        return Pronunciation.objects.filter(word__value=self.word).exists()
 
     def get_html_from_forvo(self):
         url = 'https://api.forvo.com/demo'
@@ -38,11 +42,10 @@ class ForvoImporter(object):
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            logger_general_fails.error('Following http error occurred:', err)
+            logger_general_fails.error('Following http error occurred: {}'.format(err))
         logger_forvo_fails.error(self.word)
 
     def get_raw_json_from_html(self, html):
-        print(html)
         div_pos = html.find('class="intro"')
         pre_open_pos = html.find('pre', div_pos)
         pre_close_pos = html.find('pre', pre_open_pos + 1)
@@ -88,7 +91,7 @@ class ForvoImporter(object):
         except requests.exceptions.ConnectionError:
             logger_general_fails.error('Connection error')
         except requests.exceptions.HTTPError as err:
-            logger_general_fails.error('Following http error occurred:', err)
+            logger_general_fails.error('Following http error occurred: {}'.format(err))
         logger_forvo_fails.error(self.word)
 
     @classmethod
@@ -114,11 +117,14 @@ class ForvoImporter(object):
         mp3_file_name = '{}_{}.mp3'.format(self.word, item_number + 1)
         return os.path.join(dir_path, mp3_file_name)
 
-    @classmethod
-    def save_mp3(cls, mp3_full_path, mp3):
-        with open(mp3_full_path, 'wb') as f:
-            f.write(mp3)
-            return True
+    def save_mp3(self, mp3_full_path, mp3):
+        try:
+            with open(mp3_full_path, 'wb') as f:
+                f.write(mp3)
+        except AssertionError:
+            raise  # for testing
+        except Exception as err:
+            self.write_to_log('Something went wrong: {}'.format(err))
 
     def write_to_log(self, log_message):
         logger_general_fails.error(log_message)
@@ -144,10 +150,11 @@ class ForvoImporter(object):
         if not self.is_path_exist(word_dir_path):
             self.create_word_dir(word_dir_path)
         mp3_abs_path = self.make_mp3_abs_path(word_dir_path, item_number)
-        if self.save_mp3(mp3_abs_path, mp3) is None:
-            self.write_to_log('Something went wrong')
+        self.save_mp3(mp3_abs_path, mp3)
 
     def import_sound(self):
+        if self.check_if_pronunc_exist_in_db():
+            return
         html = self.get_html_from_forvo()
         if html is None:
             return
@@ -172,7 +179,7 @@ class ForvoImporter(object):
 
 
 class MultithreadingParser:
-    def __init__(self, threads_count=3):
+    def __init__(self, threads_count=30):
         self.threads_count = threads_count
         self.queue = self._make_queue()
 
@@ -181,7 +188,7 @@ class MultithreadingParser:
         for i, word in enumerate(words):
             if ' ' in word:
                 continue
-            if i == 3:
+            if i == 3200:
                 break
             # print(word, 'added to queue')
             q.put_nowait(word)
@@ -215,6 +222,6 @@ class MultithreadingParser:
             fi = ForvoImporter(task)
             try:
                 fi.import_sound()
-            except Exception as e:
-                print(e)
+            except Exception as err:
+                logger_general_fails.error('Following error occurred: {}'.format(err))
             self.queue.task_done()

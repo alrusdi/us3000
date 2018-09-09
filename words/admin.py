@@ -28,6 +28,7 @@ class MeaningInline(admin.TabularInline):
 
 class WordLearningStateInline(admin.TabularInline):
     model = WordLearningState
+# TODO для данного класса сделать отдельную админку
 
 
 @admin.register(Word)
@@ -35,5 +36,9 @@ class WordAdmin(admin.ModelAdmin):
     inlines = (
         MeaningInline,
         PronunciationInline,
-        WordLearningStateInline,
     )
+
+
+@admin.register(WordLearningState)
+class WordLearningStateAdmin(admin.ModelAdmin):
+    pass
