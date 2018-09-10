@@ -16,23 +16,14 @@ class FakeRequestsResponse:
     def raise_for_status(self):
         pass
 
+    def content(self):
+        return self.text
+
 
 class ODImporterTest(TestCase):
     @fudge.patch('words.management.commands._od_importer.requests.get')
-    @fudge.patch('builtins.open')
-    def test_positive_case(self, fake_get, fake_open):
-
-        class FakeFile:
-            def write(self, *args, **kwargs):
-                pass
-
-        class FakeContextManager:
-            def __enter__(self):
-                return FakeFile()
-
-            def __exit__(self, *args):
-                pass
-
+    @fudge.patch('words.management.commands._od_importer.ODImporter.save_article')
+    def test_positive_case(self, fake_get, fake_save):
         url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'test_app_id',
                             'app_key': 'test_app_key'}
@@ -40,7 +31,7 @@ class ODImporterTest(TestCase):
         fake_get.expects_call().with_args(arg.contains(
             url), headers=expected_headers).returns(
             FakeRequestsResponse('{"article": "article"}'))
-        fake_open.expects_call().returns(FakeContextManager())
+        fake_save.expects_call().returns(None)
         test_word = ODImporter('fifth')
         msg = test_word.create_word_article(dir_path, 'test_app_id',
                                             'test_app_key')
@@ -126,8 +117,6 @@ class ODImporterTest(TestCase):
 class ForvoImporterTest(TestCase):
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
     @fudge.patch('words.management.commands._forvo_importer.requests.get')
-    # TODO to replace 'fake_is_path_exist' and 'fake_save' functions with
-    # normal tests
     @fudge.patch('words.management.commands._forvo_importer.'
                  'ForvoImporter.is_path_exist')
     @fudge.patch('words.management.commands._forvo_importer.'
@@ -159,7 +148,7 @@ class ForvoImporterTest(TestCase):
         )
         fake_get.expects_call().returns(FakeRequestsResponse(b'0x11'))
         fake_is_path_exist.expects_call().returns(True)
-        fake_save.expects_call().returns('wtf')
+        fake_save.expects_call().returns(None)
         test_word = ForvoImporter('first')
         res = test_word.import_sound()
         self.assertEqual(res, None)
@@ -182,18 +171,26 @@ class ForvoImporterTest(TestCase):
             arg.contains(url), data=expected_data).returns(
             FakeRequestsResponse('some html code')
         )
-        test_word = ForvoImporter('first')
+        test_word = ForvoImporter('second')
         res = test_word.get_html_from_forvo()
         self.assertEqual(res, 'some html code')
         # проверить что метод 'get_html_from_forvo' получает корректные данные
         # при отправке корректного запроса
 
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
-    def test_uses_requests_to_raise_connection_error_html(self, fake_post):
+    @fudge.patch('words.management.commands._forvo_importer.logging')
+    def test_uses_requests_to_raise_connection_error_html(self, fake_post,
+                                                          fake_logging):
+        class FakeLoggin:
+            def error(self, *args, **kwargs):
+                print('wtf')
+                assert 'some_error' in args
+
         fake_post.expects_call().raises(requests.exceptions.ConnectionError)
-        test_word = ForvoImporter('second')
-        res = test_word.get_html_from_forvo()
-        self.assertEqual(res, None)
+        fake_logging.expects_call().is_a_stub().raises(FakeLoggin())
+        test_word = ForvoImporter('third')
+        test_word.get_html_from_forvo()
+        # self.assertEqual(res, None)
         # что будет, если произойдет ConnectionError
 
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
@@ -232,9 +229,13 @@ class ForvoImporterTest(TestCase):
         res = test_word.get_items_from_forvo_json(json)
         self.assertEqual(res, None)
 
-    def test_11(self):
+    @fudge.patch('words.management.commands._forvo_importer.os.mkdir')
+    def test_11(self, fake_create_dir):
+        fake_create_dir.expects_call()
+        test_word = ForvoImporter('eleventh')
+        res = test_word.create_word_dir('dir_path')
+        self.assertEqual(res, None)
         # проверить что создается директория с именем конкретного слова
-        pass
 
     def test_12(self):
         # что будет, если директория с именем конкретного слова уже существует
@@ -301,7 +302,23 @@ class ForvoImporterTest(TestCase):
         # что будет, если в словаре items у ключей code и
         # country отсутствуют занчения en и United States соответственно
 
-    def test_19(self):
+    @fudge.patch('builtins.open')
+    def test_save_proper_data_to_file(self, fake_open):
+
+        class FakeFile:
+            def write(self, *args, **kwargs):
+                assert 'some_data' in args
+
+        class FakeContextManager:
+            def __enter__(self):
+                return FakeFile()
+
+            def __exit__(self, *args):
+                pass
+
+        fake_open.expects_call().with_args('some_path', 'wb').returns(
+            FakeContextManager())
+        test_word = ForvoImporter('fifth')
+        test_word.save_mp3('some_path', 'some_data')
         # Убедиться что функция 'save_result' сохраняет файлы
         # в нужную директорию
-        pass
