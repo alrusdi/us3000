@@ -29,26 +29,6 @@ def convert_str_to_dict(json_str, word):
         logger_od_convert_fails.error(word)
 
 
-def get_meaning_from_json(json_word, word):
-    try:
-        sense = json_word.get('results')[0].get('lexicalEntries')[0].get(
-            'entries')[0].get('senses')[0]
-        meanings = sense.get('definitions')
-        if meanings is not None:
-            return meanings[0]
-        meanings = sense.get('short_definitions')
-        if meanings is not None:
-            return meanings[0]
-        meanings = sense.get('crossReferenceMarkers')
-        if meanings is not None:
-            return meanings[0]
-    except AttributeError:
-        logger_general_fails.error('Unexpected JSON format')
-    except TypeError:
-        logger_general_fails.error('Unexpected JSON format')
-    logger_od_convert_fails.error(word)
-
-
 def get_spelling_from_json(json_word, word):
     try:
         lexical_entry = json_word.get('results')[0].get('lexicalEntries')[0]
@@ -68,13 +48,12 @@ def get_spelling_from_json(json_word, word):
     logger_od_convert_fails.error(word)
 
 
-def make_word_dict(word_number, word, meaning, spelling, raw_json):
+def make_word_dict(word_number, word, spelling, raw_json):
     return {
         "model": "words.word",
         "pk": word_number,
         "fields": {
             "value": "{}".format(word),
-            "general_meaning": "{}".format(meaning),
             "spelling": "{}".format(spelling),
             "raw_od_article": "{}".format(raw_json)
         }
@@ -100,9 +79,8 @@ def create_fixture():
         abs_file_path = concat_path(work_dir_path, file)
         json_str = get_data_from_file(abs_file_path)
         json_dict = convert_str_to_dict(json_str, word)
-        meaning = get_meaning_from_json(json_dict, word)
         spelling = get_spelling_from_json(json_dict, word)
-        word_dict = make_word_dict(i + 1, word, meaning, spelling, json_dict)
+        word_dict = make_word_dict(i + 1, word, spelling, json_dict)
         add_word_to_fixture(words_fixture, word_dict)
         abs_fixture_path = concat_path(settings.BASE_DIR,
                                        'words', 'fixtures', 'words.json')

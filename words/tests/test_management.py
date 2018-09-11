@@ -19,13 +19,43 @@ class FakeRequestsResponse:
 
 class ODImporterTest(TestCase):
     @fudge.patch('words.management.commands._od_importer.requests.get')
+    @fudge.patch('builtins.open')
+    def test_positive_case(self, fake_get, fake_open):
+
+        class FakeFile:
+            def write(self, *args, **kwargs):
+                pass
+
+        class FakeContextManager:
+            def __enter__(self):
+                return FakeFile()
+
+            def __exit__(self, *args):
+                pass
+
+        url = 'https://od-api.oxforddictionaries.com'
+        expected_headers = {'app_id': 'test_app_id',
+                            'app_key': 'test_app_key'}
+        dir_path = os.path.join(settings.BASE_DIR, 'media', 'od')
+        fake_get.expects_call().with_args(arg.contains(
+            url), headers=expected_headers).returns(
+            FakeRequestsResponse('{"article": "article"}'))
+        fake_open.expects_call().returns(FakeContextManager())
+        test_word = ODImporter('fifth')
+        msg = test_word.create_word_article(dir_path, 'test_app_id',
+                                            'test_app_key')
+        self.assertEqual(msg, 'Data successfully saved')
+
+    @fudge.patch('words.management.commands._od_importer.requests.get')
     @override_settings(OXFORD_DICTIONARY_APP_ID='test_app_id',
                        OXFORD_DICTIONARY_APP_KEY='test_app_key')
     def test_uses_requests_to_get_article_from_od(self, fake_get):
         url = 'https://od-api.oxforddictionaries.com'
-        expected_headers = {'app_id': 'test_app_id', 'app_key': 'test_app_key'}
+        expected_headers = {'app_id': 'test_app_id',
+                            'app_key': 'test_app_key'}
         fake_get.expects_call().with_args(arg.contains(
-            url), headers=expected_headers).returns(FakeRequestsResponse('{}'))
+            url), headers=expected_headers).returns(
+            FakeRequestsResponse('{}'))
         test_word = ODImporter('something')
         msg, res = test_word.get_article(settings.OXFORD_DICTIONARY_APP_ID,
                                          settings.OXFORD_DICTIONARY_APP_KEY)
@@ -41,59 +71,39 @@ class ODImporterTest(TestCase):
     @fudge.patch('words.management.commands._od_importer.requests.get')
     def test_uses_requests_to_raise_404_error(self, fake_get):
         http_error = 404
-        fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        fake_get.expects_call().raises(requests.exceptions
+                                       .HTTPError(http_error))
         test_word = ODImporter('qwerty')
         msg, res = test_word.get_article('', '')
-        self.assertEqual(msg, 'Word "qwerty" does not exist in Oxford Dictionary')
+        self.assertEqual(msg, 'Word "qwerty" does not exist'
+                              ' in Oxford Dictionary')
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
     def test_uses_requests_to_raise_not_404_http_error(self, fake_get):
         http_error = 418
-        fake_get.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        fake_get.expects_call().raises(requests.exceptions
+                                       .HTTPError(http_error))
         test_word = ODImporter('fourth')
         msg, res = test_word.get_article('', '')
         self.assertEqual(msg, 'HTTP error occurred: {}'.format(
             requests.exceptions.HTTPError(http_error)))
 
-    @fudge.patch('words.management.commands._od_importer.requests.get')
-    @fudge.patch('words.management.commands._od_importer.ODImporter.make_abs_path')
-    @fudge.patch('words.management.commands._od_importer.ODImporter.save_article')
-    def test_positive_case(self, fake_get, fake_abs_path, fake_save_article):
-        url = 'https://od-api.oxforddictionaries.com'
-        expected_headers = {'app_id': 'another_test_app_id',
-                            'app_key': 'another_test_app_key'}
-        dir_path = os.path.join(settings.BASE_DIR, 'media',
-                                'od')
-        fake_get.expects_call().with_args(arg.contains(
-            url), headers=expected_headers).returns(
-            FakeRequestsResponse('{"article": "article"}'))
-        fake_abs_path.expects_call().returns('')
-        fake_save_article.expects_call().returns(None)
-        test_word = ODImporter('fifth')
-        msg = test_word.create_word_article(dir_path, 'another_test_app_id',
-                                            'another_test_app_key')
-        self.assertEqual(msg, 'Data successfully saved')
+    @fudge.patch('builtins.open')
+    def test_save_proper_data_to_file(self, fake_open):
+        class FakeFile:
+            def write(self, *args, **kwargs):
+                assert 'some_data' in args
 
-    @fudge.patch('words.management.commands._od_importer.builtins')
-    def test_save_files_to_proper_dir(self, fake_builtins):
-        fake_file = fudge.Fake().is_a_stub()
-        fake_file.provides("write").is_callable()
         class FakeContextManager:
-            def __init__(self, *args, **kwargs):
-                # assert передан ли правильный путь
-                pass
-
             def __enter__(self):
-                return fake_file
+                return FakeFile()
 
             def __exit__(self, *args):
                 pass
-
-        fake_builtins.provides("open").returns(FakeContextManager())
+        fake_open.expects_call().with_args('some_path', 'w').returns(
+            FakeContextManager())
         test_word = ODImporter('fifth')
-        msg = test_word.save_article('', '')
-        self.assertEqual(msg, '1')  # не использовать
-    # Убедиться что функция 'create_word_article' сохраняет файлы в нужную директорию
+        test_word.save_article('some_path', 'some_data')
 
     @fudge.patch('words.management.commands._od_importer.os.path.exists')
     @fudge.patch('words.management.commands._od_importer.os.access')
@@ -189,7 +199,8 @@ class ForvoImporterTest(TestCase):
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
     def test_uses_requests_to_raise_http_error(self, fake_post):
         http_error = 418
-        fake_post.expects_call().raises(requests.exceptions.HTTPError(http_error))
+        fake_post.expects_call().raises(requests.exceptions.HTTPError(
+            http_error))
         test_word = ForvoImporter('third')
         res = test_word.get_html_from_forvo()
         self.assertEqual(res, None)
@@ -229,7 +240,8 @@ class ForvoImporterTest(TestCase):
         # что будет, если директория с именем конкретного слова уже существует
         pass
 
-    @fudge.patch('words.management.commands._forvo_importer.ForvoImporter.is_path_exist')
+    @fudge.patch('words.management.commands._forvo_importer.ForvoImporter'
+                 '.is_path_exist')
     def test_if_dir_path_exists(self, fake_is_path_exist):
         fake_is_path_exist.expects_call().returns(False)
         test_word = ForvoImporter('seventh')

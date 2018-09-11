@@ -183,6 +183,15 @@ LOGGING = {
             'maxBytes': 1024*1024,
             'backupCount': 3
         },
+        'pronunc_convert_log': {
+            'level': 'INFO',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs',
+                                     'pronunce_convert.log'),
+            'formatter': 'unsaved_words',
+            'maxBytes': 1024 * 1024,
+            'backupCount': 3
+        },
         'general_log': {
             'level': 'INFO',
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
@@ -222,6 +231,11 @@ LOGGING = {
         },
         'od_convert_fails': {
             'handlers': ['od_convert_log'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'pronunc_convert_fails': {
+            'handlers': ['pronunc_convert_log'],
             'level': 'INFO',
             'propagate': True,
         },
