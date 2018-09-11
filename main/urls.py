@@ -18,11 +18,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from words import views
+from words import views as word_views
+from profiles import views as profiles_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.IndexView.as_view(), name="home")
+    path('', word_views.IndexView.as_view(), name="home"),
+    path('registration/', profiles_views.RegistrationView.as_view(), name="registration")
 ]
 
 if settings.DEBUG:

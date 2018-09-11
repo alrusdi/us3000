@@ -1,0 +1,42 @@
+{% extends "words/base.html" %}
+{% block content %}
+Форма регистрации
+<form method="post" class="uk-form-horizontal uk-margin-large">
+    {% csrf_token %}
+    {% load widget_tweaks %}
+    <div class="uk-margin">
+        <label class="uk-form-label" for="form-horizontal-text">
+            Имя пользователя
+        </label>
+        <div class="uk-form-controls uk-margin-remove-bottom">
+            {% if form.username.errors %}
+            {{ form.username|add_class:"uk-input uk-form-danger" }}
+            <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.username.errors }}</div>
+            {% else %}
+            {{ form.username|add_class:"uk-input" }}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="uk-margin">
+        <label class="uk-form-label" for="form-horizontal-text">
+            Пароль
+        </label>
+        <div class="uk-form-controls">
+            {{ form.password|add_class:"uk-input" }}
+        </div>
+    </div>
+
+    <div class="uk-margin">
+        <label class="uk-form-label" for="form-horizontal-text">
+            Подтверждение пароля
+        </label>
+        <div class="uk-form-controls">
+            {{ form.password_confirm|add_class:"uk-input" }}
+        </div>
+    </div>
+
+    <input type="submit" class="uk-button uk-button-default">
+</form>
+
+{% endblock %}
