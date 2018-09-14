@@ -24,7 +24,8 @@ from profiles import views as profiles_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', word_views.IndexView.as_view(), name="home"),
-    path('registration/', profiles_views.RegistrationView.as_view(), name="registration")
+    path('registration/', profiles_views.RegistrationView.as_view(), name="registration"),
+    path('login/', profiles_views.LoginView.as_view(), name="login"),
 ]
 
 if settings.DEBUG:
