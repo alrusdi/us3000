@@ -16,7 +16,6 @@ class RegistrationView(FormView):
         user = User.objects.create_user(username=username,
                                         email='{}@debugmail.io'.format(username),
                                         password=password)
-
         user = authenticate(username=username, password=password)
         assert user
         login(self.request, user)

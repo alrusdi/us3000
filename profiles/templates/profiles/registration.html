@@ -23,7 +23,12 @@
             Пароль
         </label>
         <div class="uk-form-controls">
+            {% if form.password_confirm.errors %}
+            {{ form.password|add_class:"uk-input uk-form-danger" }}
+            <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.password_confirm.errors }}</div>
+            {% else %}
             {{ form.password|add_class:"uk-input" }}
+            {% endif %}
         </div>
     </div>
 
@@ -32,9 +37,14 @@
             Подтверждение пароля
         </label>
         <div class="uk-form-controls">
+            {% if form.password_confirm.errors %}
+            {{ form.password_confirm|add_class:"uk-input uk-form-danger" }}
+            {% else %}
             {{ form.password_confirm|add_class:"uk-input" }}
+            {% endif %}
         </div>
     </div>
+
 
     <input type="submit" class="uk-button uk-button-default">
 </form>
