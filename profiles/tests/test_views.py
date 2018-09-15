@@ -9,8 +9,8 @@ class RegistrationViewTest(TestCase):
 
     def test_shows_registration_forms(self):
         response = self.client.get(self.reg_url)
-        # import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 200)
+        import pdb; pdb.set_trace()
         self.assertIn('name="password_confirm"', response.content.decode('utf8'))
 
     def test_correctly_shows_errors(self):
@@ -36,5 +36,31 @@ class RegistrationViewTest(TestCase):
         self.assertEqual(response2._headers['location'][1], '/')
         User.objects.get(username='User_2')
         # import pdb; pdb.set_trace()
+
+
+class LoginViewTest(TestCase):
+    def setUp(self):
+        self.login_url = reverse('login')
+
+    def test_shows_login_forms(self):
+        response = self.client.get(self.login_url)
+        self.assertEqual(response.status_code, 200)
+        # import pdb; pdb.set_trace()
+        self.assertIn('<form name="login"', response.content.decode('utf8'))
+
+    def test_correctly_shows_errors(self):
+        response = self.client.get(self.login_url)
+        self.assertEqual(response.status_code, 200)
+        data = {'csrfmiddlewaretoken': str(response.context[1].get('csrf_token')),
+                'username': '',
+                'password': ''}
+        response2 = self.client.post(self.login_url, data=data)
+        self.assertEqual(response2.status_code, 200)
+
+    def test_login_if_form_valid(self):
+        response = self.client.get(self.login_url)
+        import pdb; pdb.set_trace()
+        self.assertEqual(response.status_code, 200)
+
 
 
