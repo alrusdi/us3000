@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import check_password
 
 
 def validate_username(username):
@@ -36,7 +37,6 @@ class RegistrationForm(forms.Form):
             raise forms.ValidationError("Пользователь с таким именем уже существует."
                                         " Пожалуйста, выберите другое имя")
         return validated_username
-        # Валидация: username не более 30 символов, только нижний регистр, цифры и "_"
 
     def clean_password(self):
         password = self.cleaned_data["password"]
@@ -58,14 +58,20 @@ class LoginForm(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data["username"]
-        username_exists = User.objects.filter(username=username).exists()
+        validated_username = validate_username(username)
+
+        username_exists = User.objects.filter(username=validated_username).exists()
         if not username_exists:
-            raise forms.ValidationError("Такого пользователя не найдено")
-        return username
+            raise forms.ValidationError("Пользователь с таким именем не найден")
+        return validated_username
 
     def clean_password(self):
+        username = self.cleaned_data.get("username")
+        if username is None:
+            return
         password = self.cleaned_data["password"]
-        # любой пароль, главное что бы password == password_confirm
-        # trim (strip): всегда отчищаем от пробельных символов в начале и в конце
+        password = password.strip()
+        password_hash_in_db = User.objects.filter(username=username).values()[0]['password']
+        if not check_password(password, password_hash_in_db):
+            raise forms.ValidationError("Некорректный пароль")
         return password
-        # проверить правильнйы ли пароль
