@@ -14,6 +14,11 @@ class Word(models.Model):
         verbose_name='Сырые данные с OD'
     )
 
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Используется'
+    )
+
     def __str__(self):
         return self.value
 

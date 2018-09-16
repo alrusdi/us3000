@@ -26,6 +26,9 @@ urlpatterns = [
     path('', word_views.IndexView.as_view(), name="home"),
     path('registration/', profiles_views.RegistrationView.as_view(), name="registration"),
     path('login/', profiles_views.LoginView.as_view(), name="login"),
+    path('logout/', profiles_views.LogoutView.as_view(), name="logout"),
+    path('learning-state/', word_views.LearningStateView.as_view(), name="learning_state"),
+
 ]
 
 if settings.DEBUG:

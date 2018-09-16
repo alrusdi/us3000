@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -5,22 +7,26 @@ from django.contrib.auth.hashers import check_password
 
 
 def validate_username(username):
-    # 1. strip
+    errors_list = []
     username = username.strip()
     if len(username) > 30:
-        raise ValidationError("Длина имени пользователя не"
-                              " должна привышать 30 символов")
-    # 2. lower
+        errors_list.append(
+            ValidationError(
+                "Длина имени пользователя не должна привышать 30 символов",
+                code="username_too_long"
+            )
+        )
     username = username.lower()
-    # 3. check if contains letters, digits and underscore
-    permitted_signs = 'abcdefghijklmnopqrstuvwxyz1234567890_'
-    for sign in username:
-        if sign not in permitted_signs:
-            raise ValidationError('Имя пользователя содержит недопустимые'
-                                  ' символы. Пожайлуйста, используйте только'
-                                  ' буквы латинского алфавита, цифры и знак '
-                                  '"_"')
-    # 4. ValidatonError if check is incorrect
+    if not re.match(r'^[a-z0-9_]+$', username):
+        errors_list.append(
+            ValidationError(
+                'Имя пользователя содержит недопустимые символы. Пожайлуйста,'
+                ' используйте только буквы латинского алфавита, цифры и знак "_"',
+                code='contains_wrong_characters'
+            )
+        )
+    if errors_list:
+        raise ValidationError(errors_list)
     return username
 
 

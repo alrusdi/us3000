@@ -1,6 +1,8 @@
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.views.generic import RedirectView
 from django.views.generic.edit import FormView
 from profiles.forms import RegistrationForm, LoginForm
 
@@ -33,3 +35,14 @@ class LoginView(FormView):
         user = authenticate(username=username, password=password)
         login(self.request, user)
         return super().form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('home')
+        return super().get(request, *args, **kwargs)
+
+
+class LogoutView(RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        logout(self.request)
+        return reverse('home')
