@@ -1,9 +1,61 @@
 {% extends "words/base.html" %}
+
+{% load static %}
+
 {% block content %}
-Index
-    <a href="{% url 'logout' %}">You can logout</a>
-    <div id="learning_states">
+<section class="uk-section uk-article">
+    <div class="uk-container uk-container-small">
+        <h2 class="uk-text-bold uk-h1 uk-margin-remove-adjacent uk-margin-remove-top">Just do it!</h2>
+        <div id="learning_states">
+            <div class="ls-item uk-card uk-card-body uk-card-default uk-card-small uk-margin-bottom uk-margin-small" v-for="word in words">
+                <div class="uk-grid-collapse uk-text-center" uk-grid>
+                    <div class="uk-width-1-3">
+                        <div class="uk-text-lead uk-padding" >[[ word.value ]]</div>
+                    </div>
+                    <div class="uk-margin-left uk-margin-small">
+                        <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know how to pronounce it?</div>
+                        <div class="uk-text-center" uk-grid>
+                            <div class="ls-audio-items">
+                                <div class="ls-audio" v-for="audio in word.audio">
+                                    <button class="uk-icon-button uk-margin-small-right uk-button-primary"  v-on:click="play_audio(audio.id)" uk-icon="play"></button>
+                                    <audio :id="audio.id" :src="audio.src"></audio>
+                                </div>
+                            </div>
+                            <div class="ls-yesno">
+                                <div class="uk-button-group">
+                                    <button class="uk-button" v-on:click="word.is_user_know_pronunciation=true" v-bind:class="{'uk-button-success': word.is_user_know_pronunciation}">YES</button>
+                                    <button class="uk-button" v-on:click="word.is_user_know_pronunciation=false" v-bind:class="{'uk-button-danger': !word.is_user_know_pronunciation}">NO</button>
+                                </div>
+                            </div>
+                        </div>
 
+                    </div>
+                    <div class="uk-margin-left uk-margin-small">
+                        <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know what does it mean?</div>
+                        <div class="ls-yesno">
+                            <div class="uk-button-group">
+                                <button class="uk-button uk-button-default" v-on:click="word.is_user_know_meaning=true" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
+                                <button class="uk-button uk-button-default" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
+                            </div>
+                        </div>
+                        <a class="uk-link uk-text-small" v-on:click="word.ui.show_meanings=!word.ui.show_meanings">Not sure?</a>
+                    </div>
+                </div>
+                <div class="uk-grid-collapse" uk-grid v-show="word.ui.show_meanings">
+                    <div class="uk-width-1-6 uk-text-muted">Meanings:</div>
+                    <div class="ls-meaning-items ">
+                        <div class="ls-meaning" v-for="meaning in word.meanings">
+                            &bull; [[ meaning ]]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</section>
+{% endblock %}
 
+
+{% block extra_js %}
+<script src="{% static 'build/js/app.js' %}"></script>
 {% endblock %}

@@ -1,50 +1,52 @@
 {% extends "words/base.html" %}
 {% load widget_tweaks %}
 {% block content %}
+<div class="uk-flex uk-flex-center uk-flex-middle uk-background-muted uk-height-viewport">
+    <div class="uk-width-medium uk-padding-small">
+        <form method="post">
+            {% csrf_token %}
 
-<form method="post">
-    {% csrf_token %}
+            <fieldset class="uk-fieldset">
+                <legend class="uk-legend">Registration</legend>
 
-    <fieldset class="uk-fieldset">
-        <legend class="uk-legend">Registration</legend>
+                <div class="uk-margin">
+                    <div class="uk-inline uk-width-1-1">
+                            <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: user"></span>
+                            {{ form.username|add_class:"uk-input"|add_error_class:"uk-form-danger"|attr:"placeholder:Login" }}
+                    </div>
+                    {% if form.username.errors %}
+                    <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.username.errors }}</div>
+                    {% endif %}
 
-        <div class="uk-margin">
-            <div class="uk-inline uk-width-1-1">
-                    <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: user"></span>
-                    {{ form.username|add_class:"uk-input"|add_error_class:"uk-form-danger"|attr:"placeholder:Login" }}
-            </div>
-            {% if form.username.errors %}
-            <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.username.errors }}</div>
-            {% endif %}
+                </div>
 
-        </div>
-
-        <div class="uk-margin">
-            <div class="uk-inline uk-width-1-1">
-                <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: lock"></span>
-                {{ form.password|add_class:"uk-input"|add_error_class:"uk-form-danger"|attr:"placeholder:Password" }}
-            </div>
-            {% if form.password.errors %}
-            <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.password.errors }}</div>
-            {% endif %}
-        </div>
-
-
-        <div class="uk-margin">
-            <div class="uk-inline uk-width-1-1">
-                <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: lock"></span>
-                {{ form.password_confirm|add_class:"uk-input"|add_error_class:"uk-form-danger"|attr:"placeholder:Password again" }}
-            </div>
-            {% if form.password.errors %}
-            <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.password_confirm.errors }}</div>
-            {% endif %}
-        </div>
+                <div class="uk-margin">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: lock"></span>
+                        {{ form.password|add_class:"uk-input"|add_error_class:"uk-form-danger"|attr:"placeholder:Password" }}
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
 
 
-        <div class="uk-margin">
-            <button type="submit" class="uk-button uk-button-primary uk-button-primary uk-button-large uk-width-1-1">Sign in</button>
-        </div>
-    </fieldset>
-</form>
+                <div class="uk-margin">
+                    <div class="uk-inline uk-width-1-1">
+                        <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: lock"></span>
+                        {{ form.password_confirm|add_class:"uk-input"|add_error_class:"uk-form-danger"|attr:"placeholder:Password again" }}
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="uk-text-danger uk-text-small uk-margin-small-top">{{ form.password_confirm.errors }}</div>
+                    {% endif %}
+                </div>
 
+
+                <div class="uk-margin">
+                    <button type="submit" class="uk-button uk-button-primary uk-button-primary uk-button-large uk-width-1-1">Sign in</button>
+                </div>
+            </fieldset>
+        </form>
+     </div>
+</div>
 {% endblock %}
