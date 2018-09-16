@@ -9,8 +9,13 @@
         <script src="{% static "build/vendor/uikit/js/uikit.js" %}"></script>
         <script src="{% static "build/vendor/uikit/js/uikit-icons.js" %}"></script>
     </head>
-    <body>
+
+	<body class="uk-height-1-1">
+		<div class="uk-flex uk-flex-center uk-flex-middle uk-background-muted uk-height-viewport">
+            <div class="uk-width-medium uk-padding-small">
         {% block content %}
         {% endblock %}
+            </div>
+        </div>
     </body>
 </html>
