@@ -47,8 +47,7 @@ class LearningStateView(JsonView):
             new_words_needed = all_words_number - known_words_number
             known_words_needed = WORDS_NUMBER - new_words_needed
         else:
-            known_words_needed = 0
-            new_words_needed = 0
+            raise Exception('unexpected words ratio')
         return known_words_needed, new_words_needed
 
     def save_word_learning_state_to_db(self, needed_ids, user):
@@ -91,19 +90,24 @@ class LearningStateView(JsonView):
             len(known_words_ids),
             len(all_words_ids)
         )
-        if known_words_needed + new_words_needed < 1:
-            return
         random_new_words = self.get_random_new_words(known_words_ids, all_words_ids, new_words_needed)
         self.save_word_learning_state_to_db(random_new_words, self.request.user)
         words_to_repeat = self.get_words_to_repeat(known_words_needed)
         words_for_learning = random_new_words + words_to_repeat
         random.shuffle(words_for_learning)
-        words_data_list = []
-        for word in words_for_learning:
-            word_data = []
-            word_data.extend(*Word.objects.filter(id=word).values_list('id', 'value'))
-            word_data.append(*WordLearningState.objects.filter(word_id=word).values_list('id', flat=True))
-            words_data_list.append(dict(zip(('id', 'value', 'learning_state_id'), word_data)))
+        qs = WordLearningState.objects.filter(
+            pk__in=words_for_learning
+        ).prefetch_related(
+            'word',
+            'word__pronunciation_set',
+            'word__meaning_set'
+        )
+        # words_data_list = []
+        # for word in words_for_learning:
+        #     word_data = []
+        #     word_data.extend(*Word.objects.filter(id=word).values_list('id', 'value'))
+        #     word_data.append(*WordLearningState.objects.filter(word_id=word).values_list('id', flat=True))
+        #     words_data_list.append(dict(zip(('id', 'value', 'learning_state_id'), word_data)))
         return {"words": words_data_list}
         # 1. Если у пользователя нет изученных слов - показываем ему settings.WORDS_NUMBER случайных
         # 2. Если у пользователя есть изученные слова, то показываем ему settings.WORDS_NUMBER слов, состоящих из
