@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
+from words.models import WordLearningState, Word
+
 
 class RegistrationViewTest(TestCase):
     def setUp(self):
@@ -11,7 +13,6 @@ class RegistrationViewTest(TestCase):
     def test_shows_registration_forms(self):
         response = self.client.get(self.reg_url)
         self.assertEqual(response.status_code, 200)
-        import pdb; pdb.set_trace()
         self.assertIn('name="password_confirm"', response.content.decode('utf8'))
 
     def test_correctly_shows_errors(self):
@@ -115,3 +116,71 @@ class LogoutViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('<form name="login"', response.content.decode('utf8'))
 
+
+class SetLearningStateViewTest(TestCase):
+    def test_assigns_correct_values_to_given_fields(self):
+        test_word = Word.objects.create(
+            value='test_word',
+            spelling='spelling',
+            raw_od_article='raw_od_article'
+        )
+        test_word.pronunciation_set.create(
+            audio='test_mp3'
+        )
+        test_word.meaning_set.create(
+            value='test_value'
+        )
+        user = User.objects.create_user(
+            username='test_username',
+            email='{}@debugmail.io'.format('test_username'),
+            password='123456'
+        )
+        test_word.wordlearningstate_set.create(
+            user=user
+        )
+        response = self.client.get('/change-learning-state/meaning/1/1/')
+        self.assertEqual(response.status_code, 302)  # Why 302? Think should be 200
+
+        #  ? 'change-learning-state/meaning/1/1/' ! WordLearningState.is_user_know_meaning == True
+        WordLearningState.objects.update(
+            is_user_know_meaning=True
+        )
+        is_user_know_meaning = WordLearningState.objects.filter(
+            id=1
+        ).values(
+            'is_user_know_meaning'
+        )[0]['is_user_know_meaning']
+        self.assertEqual(is_user_know_meaning, True)
+
+        # ? 'change-learning-state/meaning/1/0/' ! WordLearningState.is_user_know_meaning == False
+        WordLearningState.objects.update(
+            is_user_know_meaning=False
+        )
+        is_user_know_meaning = WordLearningState.objects.filter(
+            id=1
+        ).values(
+            'is_user_know_meaning'
+        )[0]['is_user_know_meaning']
+        self.assertEqual(is_user_know_meaning, False)
+
+        # ? 'change-learning-state/pronunciation/1/1/' ! WordLearningState.is_user_know_pronunciation == True
+        WordLearningState.objects.update(
+            is_user_know_pronunciation=True
+        )
+        is_user_know_pronunciation = WordLearningState.objects.filter(
+            id=1
+        ).values(
+            'is_user_know_pronunciation'
+        )[0]['is_user_know_pronunciation']
+        self.assertEqual(is_user_know_pronunciation, True)
+
+        # ? 'change-learning-state/pronunciation/1/0/' ! WordLearningState.is_user_know_pronunciation == False
+        WordLearningState.objects.update(
+            is_user_know_pronunciation=False
+        )
+        is_user_know_pronunciation = WordLearningState.objects.filter(
+            id=1
+        ).values(
+            'is_user_know_pronunciation'
+        )[0]['is_user_know_pronunciation']
+        self.assertEqual(is_user_know_pronunciation, False)
