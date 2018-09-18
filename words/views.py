@@ -102,9 +102,10 @@ class LearningStateView(JsonView):
             'word__pronunciation_set',
             'word__meaning_set'
         )
-        # words_data_list = []
-        # for word in words_for_learning:
-        #     word_data = []
+        words_data_list = []
+        for word in qs:
+            words_data_list.append(serialize_learning_state(word))
+            # word_data = []
         #     word_data.extend(*Word.objects.filter(id=word).values_list('id', 'value'))
         #     word_data.append(*WordLearningState.objects.filter(word_id=word).values_list('id', flat=True))
         #     words_data_list.append(dict(zip(('id', 'value', 'learning_state_id'), word_data)))
@@ -122,6 +123,18 @@ class LearningStateView(JsonView):
         # 3. settings.WORDS_NUMBER - settings.WORDS_TO_REPEAT
         # 4. Перемешать и вернуть json: {'id': id, 'learning_state_id': id, 'value': word}
 
+
+@method_decorator(login_required, name='dispatch')
+class SetLearningStateView(JsonView):
+    def get_context_data(self):
+        import pdb; pdb.set_trace()
+        # Если да, то поставить is_user_know_meaning в True
+        # Проверить входит ли поле <fieldname> in [meaning, pronunciation]
+        # Убедиться что value == 0 или 1
+        # Должна принемать параметр WordLearningState.id и убедиться что принадлежит
+        # именно текущему пользователю - если нет - ошибка
+        # Назначить нужному полю нужное значение
+        return {}
 
 
 
