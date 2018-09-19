@@ -142,10 +142,10 @@ class SetLearningStateViewTest(TestCase):
         self.assertEqual(response.status_code, 302)  # Why 302? Think should be 200
 
         #  ? 'change-learning-state/meaning/1/1/' ! WordLearningState.is_user_know_meaning == True
-        # import pdb; pdb.set_trace()
-        WordLearningState.objects.update(
-            is_user_know_meaning=True
-        )
+        self.client.get('/change-learning-state/meaning/1/1/')
+        # WordLearningState.objects.update(
+        #     is_user_know_meaning=True
+        # )
         is_user_know_meaning = WordLearningState.objects.filter(
             id=1
         ).first().is_user_know_meaning
@@ -177,4 +177,4 @@ class SetLearningStateViewTest(TestCase):
             id=1
         ).first().is_user_know_pronunciation
         self.assertEqual(is_user_know_pronunciation, False)
-        # TODO update tests when SetLearningStateView complited
+        # TODO update tests when SetLearningStateView completed
