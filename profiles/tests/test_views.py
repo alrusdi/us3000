@@ -25,8 +25,6 @@ class RegistrationViewTest(TestCase):
         response2 = self.client.post(self.reg_url, data=data)
         self.assertEqual(response2.status_code, 200)
 
-        # в response2.content есть ошибка - поля обязательные для заполнения
-
     def test_create_new_user_if_form_valid(self):
         response = self.client.get(self.reg_url)
         data = {'csrfmiddlewaretoken': str(response.context[1].get('csrf_token')),
@@ -37,7 +35,6 @@ class RegistrationViewTest(TestCase):
         self.assertEqual(response2.status_code, 302)
         self.assertEqual(response2._headers['location'][1], '/')
         User.objects.get(username='User_2')
-        # import pdb; pdb.set_trace()
 
 
 class LoginViewTest(TestCase):
@@ -47,7 +44,6 @@ class LoginViewTest(TestCase):
     def test_shows_login_forms(self):
         response = self.client.get(self.login_url)
         self.assertEqual(response.status_code, 200)
-        # import pdb; pdb.set_trace()
         self.assertIn('<form name="login"', response.content.decode('utf8'))
 
     def test_correctly_shows_errors(self):
@@ -118,6 +114,14 @@ class LogoutViewTest(TestCase):
 
 
 class SetLearningStateViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_username',
+            email='{}@debugmail.io'.format('test_username'),
+            password='123456'
+        )
+        self.client.force_login(self.user)
+
     def test_assigns_correct_values_to_given_fields(self):
         test_word = Word.objects.create(
             value='test_word',
@@ -130,51 +134,48 @@ class SetLearningStateViewTest(TestCase):
         test_word.meaning_set.create(
             value='test_value'
         )
-        user = User.objects.create_user(
-            username='test_username',
-            email='{}@debugmail.io'.format('test_username'),
-            password='123456'
-        )
         test_word.wordlearningstate_set.create(
-            user=user
+            user=self.user
         )
-        response = self.client.get('/change-learning-state/meaning/1/1/')
-        self.assertEqual(response.status_code, 302)  # Why 302? Think should be 200
 
         #  ? 'change-learning-state/meaning/1/1/' ! WordLearningState.is_user_know_meaning == True
-        self.client.get('/change-learning-state/meaning/1/1/')
-        # WordLearningState.objects.update(
-        #     is_user_know_meaning=True
-        # )
+        response = self.client.get('/change-learning-state/meaning/1/1/')
+        self.assertEqual(response.status_code, 200)
         is_user_know_meaning = WordLearningState.objects.filter(
             id=1
         ).first().is_user_know_meaning
         self.assertEqual(is_user_know_meaning, True)
 
         # ? 'change-learning-state/meaning/1/0/' ! WordLearningState.is_user_know_meaning == False
-        WordLearningState.objects.update(
-            is_user_know_meaning=False
-        )
+        response = self.client.get('/change-learning-state/meaning/1/0/')
+        self.assertEqual(response.status_code, 200)
         is_user_know_meaning = WordLearningState.objects.filter(
             id=1
         ).first().is_user_know_meaning
         self.assertEqual(is_user_know_meaning, False)
 
         # ? 'change-learning-state/pronunciation/1/1/' ! WordLearningState.is_user_know_pronunciation == True
-        WordLearningState.objects.update(
-            is_user_know_pronunciation=True
-        )
+        response = self.client.get('/change-learning-state/pronunciation/1/1/')
+        self.assertEqual(response.status_code, 200)
         is_user_know_pronunciation = WordLearningState.objects.filter(
             id=1
         ).first().is_user_know_pronunciation
         self.assertEqual(is_user_know_pronunciation, True)
 
         # ? 'change-learning-state/pronunciation/1/0/' ! WordLearningState.is_user_know_pronunciation == False
-        WordLearningState.objects.update(
-            is_user_know_pronunciation=False
-        )
+        response = self.client.get('/change-learning-state/pronunciation/1/0/')
+        self.assertEqual(response.status_code, 200)
         is_user_know_pronunciation = WordLearningState.objects.filter(
             id=1
         ).first().is_user_know_pronunciation
         self.assertEqual(is_user_know_pronunciation, False)
-        # TODO update tests when SetLearningStateView completed
+
+    def test_wrong_request_sent(self):
+        response = self.client.get('/change-learning-state/some-wrong-value/1/0/')
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.get('/change-learning-state/meaning/2/0/')
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.get('/change-learning-state/pronunciation/1/3/')
+        self.assertEqual(response.status_code, 400)
