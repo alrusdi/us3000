@@ -184,3 +184,5 @@ class SetLearningStateViewTest(TestCase):
             'is_user_know_pronunciation'
         )[0]['is_user_know_pronunciation']
         self.assertEqual(is_user_know_pronunciation, False)
+        # TODO update tests when SetLearningStateView complited
+        # TODO add 'first()' to 'filter' in queries

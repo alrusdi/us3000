@@ -127,16 +127,36 @@ class LearningStateView(JsonView):
 @method_decorator(login_required, name='dispatch')
 class SetLearningStateView(JsonView):
     def get_context_data(self):
-        import pdb; pdb.set_trace()
-        # Если да, то поставить is_user_know_meaning в True
+        if self.kwargs.get('fieldname') not in ['meaning', 'pronunciation']:
+            print(111111111)
+            raise #ValidationError('')
+        if self.kwargs.get('value') not in [0, 1]:
+            print(22222222222)
+            raise #ValidationError('')
+        word_data = WordLearningState.objects.filter(id=self.kwargs.get('id')).first()
+        if not word_data:
+            print(3333333333333333)
+            raise #ValidationError('')
+        if word_data.user.username != self.request.user.username:
+            print(44444444444)
+        if (self.kwargs.get('fieldname') == 'pronunciation' and
+                word_data.is_user_know_pronunciation is not self.kwargs.get('value')):
+            WordLearningState.objects.update(is_user_know_pronunciation=self.kwargs.get('value'))
+        if (self.kwargs.get('fieldname') == 'meaning' and
+                word_data.is_user_know_meaning is not self.kwargs.get('value')):
+            WordLearningState.objects.update(is_user_know_meaning=self.kwargs.get('value'))
+
         # Проверить входит ли поле <fieldname> in [meaning, pronunciation]
         # Убедиться что value == 0 или 1
         # Должна принемать параметр WordLearningState.id и убедиться что принадлежит
         # именно текущему пользователю - если нет - ошибка
         # Назначить нужному полю нужное значение
+        # Если да, то поставить is_user_know_meaning в True
+
         return {}
 
 
+        # import pdb; pdb.set_trace()
 
 
 
