@@ -127,6 +127,9 @@ class LearningStateView(JsonView):
 @method_decorator(login_required, name='dispatch')
 class SetLearningStateView(JsonView):
     def get_context_data(self):
+        fieldname = self.kwargs.get('fieldname')
+        value = self.kwargs.get('value')
+        id = self.kwargs.get('id')
         if self.kwargs.get('fieldname') not in ['meaning', 'pronunciation']:
             print(111111111)
             raise #ValidationError('')
