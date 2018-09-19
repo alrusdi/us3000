@@ -47,11 +47,3 @@ class SetLearningStateView(JsonView):
                 word_data.is_user_know_meaning is not value):
             WordLearningState.objects.update(is_user_know_meaning=value)
         return {}
-        # Проверить входит ли поле <fieldname> in [meaning, pronunciation]
-        # Убедиться что value == 0 или 1
-        # Должна принемать параметр WordLearningState.id и убедиться что принадлежит
-        # именно текущему пользователю - если нет - ошибка
-        # Назначить нужному полю нужное значение
-        # Если да, то поставить is_user_know_meaning в True
-
-
