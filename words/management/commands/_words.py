@@ -672,7 +672,6 @@ words = [
 "creative",
 "creature",
 "credit",
-"credit card",
 "crime",
 "criminal",
 "crisis",
