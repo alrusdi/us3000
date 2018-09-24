@@ -28,7 +28,7 @@ urlpatterns = [
     path('login/', profiles_views.LoginView.as_view(), name="login"),
     path('logout/', profiles_views.LogoutView.as_view(), name="logout"),
     path('learning-state/', word_views.LearningStateView.as_view(), name="learning_state"),
-    path('change-learning-state/<fieldname>/<int:id>/<int:value>/',
+    path('change-learning-state/<fieldname>/<int:id>/<int:value>/<int:preferred_pron>/',
          word_views.SetLearningStateView.as_view(), name="set_learning_state"),
 
 ]

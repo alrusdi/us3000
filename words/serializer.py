@@ -24,6 +24,7 @@ def serialize_learning_state(learning_state):
     serialized_word = dict(
         id=learning_state.pk,
         value=learning_state.word.value,
+        spelling=learning_state.word.spelling,
         is_user_know_meaning=learning_state.is_user_know_meaning,
         is_user_know_pronunciation=learning_state.is_user_know_pronunciation,
         meanings=[],
@@ -35,7 +36,8 @@ def serialize_learning_state(learning_state):
     for p in learning_state.word.pronunciation_set.all():
         serialized_word['audio'].append({
             "id": "audio_{}".format(p.pk),
-            "src": p.audio.name
+            "src": p.audio.name,
+            "preferred": p.pk == learning_state.preferred_pronunciation_id
         })
     for m in learning_state.word.meaning_set.all():
         serialized_word['meanings'].append({

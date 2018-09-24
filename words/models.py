@@ -1,4 +1,5 @@
 from django.db import models
+from jsonfield import JSONField
 
 
 class Word(models.Model):
@@ -10,7 +11,7 @@ class Word(models.Model):
         max_length=250,
         verbose_name='Транскрипция'
     )
-    raw_od_article = models.TextField(
+    raw_od_article = JSONField(
         verbose_name='Сырые данные с OD'
     )
 
@@ -41,6 +42,10 @@ class Meaning(models.Model):
         verbose_name="Порядок",
         default=0
     )
+    examples = JSONField(
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         if self.value is None:
@@ -63,7 +68,7 @@ class Pronunciation(models.Model):
         upload_to='media/audio',
         verbose_name='Произношение'
     )
-    raw_od_data = models.TextField(
+    raw_od_data = JSONField(
         verbose_name='Сырые данные с OD',
         blank=True,
         null=True
@@ -107,6 +112,13 @@ class WordLearningState(models.Model):
     last_usage_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата последнего показа'
+    )
+    preferred_pronunciation = models.ForeignKey(
+        Pronunciation,
+        on_delete=models.CASCADE,
+        verbose_name='Предпочитаемое произношение',
+        null=True,
+        blank=True
     )
 
     def __str__(self):
