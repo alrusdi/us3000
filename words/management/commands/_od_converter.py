@@ -46,18 +46,6 @@ def _get_spelling_from_json(json_word, word):
                     continue
                 else:
                     break
-                # if meaning is None:
-                #     meaning = sense.get('crossReferenceMarkers')
-                # if meaning is not None:
-                #     meanings_list.append(meaning[0])
-                # subsenses = sense.get('subsenses')
-                # if subsenses is None:
-                #     continue
-                # for subsense in subsenses:
-                #     meaning = subsense.get('definitions')
-                #     if meaning is None:
-                #         continue
-                #     meanings_list.append(meaning[0])
         if not bool(spelling):
             logger_general_fails.error('There is no spelling for "{}" word'
                                        .format(word.capitalize()))
@@ -68,25 +56,6 @@ def _get_spelling_from_json(json_word, word):
     except TypeError:
         logger_general_fails.error('Unexpected JSON format')
     logger_od_convert_fails.error(word)
-
-
-# def _get_spelling_from_json(json_word, word):
-#     try:
-#         lexical_entry = json_word.get('results')[0].get('lexicalEntries')[0]
-#         pronunciations = lexical_entry.get('pronunciations')
-#         if pronunciations is not None:
-#             return pronunciations[0].get('phoneticSpelling')
-#         entries = lexical_entry.get('entries')
-#         if entries is not None:
-#             return entries[0].get('pronunciations')[0].get('phoneticSpelling')
-#         phonetic_spelling = entries[0].get('pronunciations')[1].get('phoneticSpelling')
-#         if phonetic_spelling is not None:
-#             return phonetic_spelling
-#     except AttributeError:
-#         logger_general_fails.error('Unexpected JSON format')
-#     except TypeError:
-#         logger_general_fails.error('Unexpected JSON format')
-#     logger_od_convert_fails.error(word)
 
 
 def make_word_dict(word_number, word, spelling, raw_json): # TODO remove
@@ -128,14 +97,10 @@ def create_fixture(): # TODO change function name
         abs_file_path = _concat_path(work_dir_path, file)
         json_str = _get_data_from_file(abs_file_path)
         json_dict = _convert_str_to_dict(json_str, word)
-        # print(normalized_json)
         spelling = _get_spelling_from_json(json_dict, word)
         # word_dict = make_word_dict(i + 1, word, spelling, json_dict)
         # add_word_to_fixture(words_fixture, word_dict)
-        # print(json_dict)
         # normalized_json = json.dumps(json_dict)
-        # print(json.dumps(json_dict))
-        import pdb; pdb.set_trace()
         _save_data_to_db(word, spelling, json.dumps(json_dict))
         if i == 10:
             break
