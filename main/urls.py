@@ -18,11 +18,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from words import views
+from words import views as word_views
+from profiles import views as profiles_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.IndexView.as_view(), name="home")
+    path('', word_views.IndexView.as_view(), name="home"),
+    path('registration/', profiles_views.RegistrationView.as_view(), name="registration"),
+    path('login/', profiles_views.LoginView.as_view(), name="login"),
+    path('logout/', profiles_views.LogoutView.as_view(), name="logout"),
+    path('learning-state/', word_views.LearningStateView.as_view(), name="learning_state"),
+    path('change-learning-state/<fieldname>/<int:id>/<int:value>/<int:preferred_pron>/',
+         word_views.SetLearningStateView.as_view(), name="set_learning_state"),
+
 ]
 
 if settings.DEBUG:
