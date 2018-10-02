@@ -2,11 +2,14 @@ import os
 import json
 import logging
 from django.conf import settings
-
 from words.models import Word
 
 logger_od_convert_fails = logging.getLogger("od_convert_fails")
 logger_general_fails = logging.getLogger("general")
+
+
+def check_if_word_exist_in_db(word):
+    return Word.objects.filter(value=word).exists()
 
 
 def _concat_path(*args):
@@ -85,6 +88,8 @@ def convert_and_save_od_article():
     file_names_list = _get_files_list_in_dir(work_dir_path)
     for file_name in file_names_list:
         word = file_name[:-5]
+        if check_if_word_exist_in_db(word):
+            continue
         abs_file_path = _concat_path(work_dir_path, file_name)
         json_str = _get_data_from_file(abs_file_path)
         json_dict = _convert_str_to_dict(json_str, word)
