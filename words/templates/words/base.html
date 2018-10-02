@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <head>
+        <title>Title</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static 'build/vendor/uikit/css/uikit.css' %}" />
+        <script src="{% static 'build/vendor/uikit/js/uikit.js' %}"></script>
+        <script src="{% static 'build/vendor/uikit/js/uikit-icons.js' %}"></script>
+        <script src="{% static 'build/vendor/vue/vue.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'build/css/app.css' %}" />
+    </head>
+
+	<body class="uk-height-1-1">
+        {% block content %}
+        {% endblock %}
+        {% block extra_js %}
+        {% endblock %}
+    </body>
+</html>

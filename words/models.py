@@ -1,4 +1,5 @@
 from django.db import models
+from jsonfield import JSONField
 
 
 class Word(models.Model):
@@ -6,15 +7,17 @@ class Word(models.Model):
         max_length=50,
         verbose_name='Слово'
     )
-    meaning = models.TextField(
-        verbose_name='Значение'
-    )
     spelling = models.CharField(
         max_length=250,
         verbose_name='Транскрипция'
     )
-    raw_od_article = models.TextField(
+    raw_od_article = JSONField(
         verbose_name='Сырые данные с OD'
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Используется'
     )
 
     def __str__(self):
@@ -26,15 +29,49 @@ class Word(models.Model):
         verbose_name_plural = "Слова"
 
 
+class Meaning(models.Model):
+    word = models.ForeignKey(
+        Word,
+        on_delete=models.CASCADE,
+        verbose_name='Слово'
+    )
+    value = models.TextField(
+        verbose_name='Значение'
+    )
+    order = models.PositiveIntegerField(
+        verbose_name="Порядок",
+        default=0
+    )
+    examples = JSONField(
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        if self.value is None:
+            return ''
+        return self.value[:20]
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "Доп. значение"
+        verbose_name_plural = "Доп. значения"
+
+
 class Pronunciation(models.Model):
     word = models.ForeignKey(
         Word,
         on_delete=models.CASCADE,
         verbose_name='Слово'
     )
-    audio = models.CharField(
-        max_length=250,
+    audio = models.FileField(
+        upload_to='media/audio',
         verbose_name='Произношение'
+    )
+    raw_od_data = JSONField(
+        verbose_name='Сырые данные с OD',
+        blank=True,
+        null=True
     )
     is_active = models.BooleanField(
         default=True,
@@ -75,6 +112,13 @@ class WordLearningState(models.Model):
     last_usage_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата последнего показа'
+    )
+    preferred_pronunciation = models.ForeignKey(
+        Pronunciation,
+        on_delete=models.CASCADE,
+        verbose_name='Предпочитаемое произношение',
+        null=True,
+        blank=True
     )
 
     def __str__(self):

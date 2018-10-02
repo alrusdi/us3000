@@ -1,5 +1,10 @@
 import requests
 import os
+import logging
+import builtins
+
+
+logger_od_fails = logging.getLogger("od_fails")
 
 
 class ODImporter:
@@ -13,7 +18,7 @@ class ODImporter:
         response_text = ''
 
         if ' ' in self.word:
-            return "Word contains space", response_text
+            return 'Word "{}" contains space'.format(self.word), response_text
 
         try:
             r = requests.get(url, headers={'app_id': app_id,
@@ -24,18 +29,21 @@ class ODImporter:
         except requests.exceptions.ConnectionError:
             status_message = 'Connection error'
         except requests.exceptions.HTTPError as err:
-            if str(err) == '404':
-                status_message = 'Specified word does not exist in Oxford Dictionary'
+            if str(err).startswith('404'):
+                status_message = ('Word "{}" does not exist in '
+                                  'Oxford Dictionary').format(self.word)
             else:
-                status_message = 'HTTP error {} occurred'.format(err)
+                status_message = 'HTTP error occurred: {}'.format(err)
         return status_message, response_text
 
     def make_abs_path(self, abs_dir_path):
-        return '{}/{}.json'.format(abs_dir_path, self.word)
+        file_name = '{}.json'.format(self.word)
+        return os.path.join(abs_dir_path, file_name)
 
     @classmethod
     def save_article(cls, file_path, word_dict):
-        with open(file_path, 'w') as f:
+        # We use builtins.open here instead of just "open" to ease patch it in tests
+        with builtins.open(file_path, 'w') as f:
             f.write(word_dict)
 
     def create_word_article(self, abs_dir_path, app_id, app_key):

@@ -1,0 +1,13 @@
+a
+  color: red
+
+b
+  color: blue
+
+.uk-icon
+	>svg
+		&:nth-child(2)
+			display: none
+
+.uk-button-success
+	background-color: #8cc14c
