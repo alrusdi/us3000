@@ -13,7 +13,7 @@ def _concat_path(*args):
     return os.path.join(*args)
 
 
-def _make_json_filename(word):
+def _format_output_filename(word):
     return '{}.json'.format(word)
 
 
@@ -61,6 +61,7 @@ def _get_word_model_value(word):
 def _save_data_to_db(word, word_mp3_path, pronunciation_dict):
     new_word = Pronunciation(word=word)
     new_word.audio = word_mp3_path
+    import pdb; pdb.set_trace()
     new_word.raw_od_data = pronunciation_dict
     new_word.save()
 
@@ -72,9 +73,9 @@ def add_data_to_pronunciation_model():
         if check_if_pronunc_exist_in_db(word):
             continue
         abs_word_sound_dir_path = _concat_path(sounds_dir_path, word)
-        json_filename = _make_json_filename(word)
+        output_filename = _format_output_filename(word)
         abs_word_od_path = _concat_path(settings.BASE_DIR, 'media',
-                                        'od', json_filename)
+                                        'od', output_filename)
         word_model_value = _get_word_model_value(word)
         if word_model_value is None:
             continue

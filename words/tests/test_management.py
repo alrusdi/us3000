@@ -305,3 +305,9 @@ class ForvoImporterTest(TestCase):
         # Убедиться что функция 'save_result' сохраняет файлы
         # в нужную директорию
         pass
+
+
+class ForvoConverterTest(TestCase):
+    def test_correctly_format_json(self):
+        
+
