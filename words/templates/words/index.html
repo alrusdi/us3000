@@ -3,6 +3,14 @@
 {% load static %}
 
 {% block content %}
+<script type="text/template" id="audio-template">
+<div class="ls-audio" v-show="best">
+    <button class="uk-icon-button uk-margin-small-right uk-button-primary"  v-on:click="play()" uk-icon="play"></button>
+    <audio :id="id" :src="src"></audio>
+</div>
+</script>
+
+
 <section class="uk-section uk-article">
     <div class="uk-container uk-container-small">
         <h2 class="uk-text-bold uk-h1 uk-margin-remove-adjacent uk-margin-remove-top">Just do it!</h2>
@@ -16,10 +24,13 @@
                         <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know how to pronounce it?</div>
                         <div class="uk-text-center" uk-grid>
                             <div class="ls-audio-items">
-                                <div class="ls-audio" v-for="audio in word.audio">
-                                    <button class="uk-icon-button uk-margin-small-right uk-button-primary"  v-on:click="play_audio(audio.id)" uk-icon="play"></button>
-                                    <audio :id="audio.id" :src="audio.src"></audio>
-                                </div>
+                                <pronunciation
+                                        v-for="audio in word.audio"
+                                        v-bind="audio"
+                                        v-bind:key="audio.id"
+                                        v-on:sound-playing="on_sound_play(word, audio.id)"
+                                ></pronunciation>
+                                <a class="uk-link uk-text-small" v-show="word.ui.want_another_audio">Bad sound?</a>
                             </div>
                             <div class="ls-yesno">
                                 <div class="uk-button-group">
@@ -34,8 +45,8 @@
                         <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know what does it mean?</div>
                         <div class="ls-yesno">
                             <div class="uk-button-group">
-                                <button class="uk-button uk-button-default" v-on:click="word.is_user_know_meaning=true" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
-                                <button class="uk-button uk-button-default" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
+                                <button class="uk-button" v-on:click="word.is_user_know_meaning=true" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
+                                <button class="uk-button" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
                             </div>
                         </div>
                         <a class="uk-link uk-text-small" v-on:click="word.ui.show_meanings=!word.ui.show_meanings">Not sure?</a>
@@ -43,9 +54,9 @@
                 </div>
                 <div class="uk-grid-collapse" uk-grid v-show="word.ui.show_meanings">
                     <div class="uk-width-1-6 uk-text-muted">Meanings:</div>
-                    <div class="ls-meaning-items ">
+                    <div class="ls-meaning-items">
                         <div class="ls-meaning" v-for="meaning in word.meanings">
-                            &bull; [[ meaning ]]
+                            &bull; [[ meaning.value ]]
                         </div>
                     </div>
                 </div>
