@@ -71,6 +71,7 @@ def _get_spelling_from_json(json_word, word):
                                     break
                                 if spelling:
                                     break
+
         if not bool(spelling):
             logger_general_fails.error('There is no spelling for "{}" word'
                                        .format(word.capitalize()))
