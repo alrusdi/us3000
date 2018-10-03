@@ -30,6 +30,7 @@ urlpatterns = [
     path('learning-state/', word_views.LearningStateView.as_view(), name="learning_state"),
     path('change-learning-state/<fieldname>/<int:id>/<int:value>/<int:preferred_pron>/',
          word_views.SetLearningStateView.as_view(), name="set_learning_state"),
+    path('autologin/<int:id>/', profiles_views.AutoLoginView.as_view(), name="autologin"),
 
 ]
 

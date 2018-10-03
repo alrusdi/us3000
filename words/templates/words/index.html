@@ -49,10 +49,10 @@
                                 <button class="uk-button" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
                             </div>
                         </div>
-                        <a class="uk-link uk-text-small" v-on:click="word.ui.show_meanings=!word.ui.show_meanings">Not sure?</a>
+                        <a class="uk-link uk-text-small" data="test-show-meanings-link" v-on:click="word.ui.show_meanings=!word.ui.show_meanings">Not sure?</a>
                     </div>
                 </div>
-                <div class="uk-grid-collapse" uk-grid v-show="word.ui.show_meanings">
+                <div class="uk-grid-collapse" data="test-meanings-values" uk-grid v-show="word.ui.show_meanings">
                     <div class="uk-width-1-6 uk-text-muted">Meanings:</div>
                     <div class="ls-meaning-items">
                         <div class="ls-meaning" v-for="meaning in word.meanings">

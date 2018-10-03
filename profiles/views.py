@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
@@ -45,4 +46,17 @@ class LoginView(FormView):
 class LogoutView(RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         logout(self.request)
+        return reverse('home')
+
+
+class AutoLoginView(RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        if not settings.DEBUG:
+            raise Exception("Available in debug mode only")
+        user_id = self.kwargs.get('id')
+        user = User.objects.get(pk=user_id)
+        password = 'test12345678'
+        user = authenticate(username=user.username, password=password)
+        assert user
+        login(self.request, user)
         return reverse('home')
