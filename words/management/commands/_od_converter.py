@@ -38,30 +38,39 @@ def _get_spelling_from_json(json_word, word):
     try:
         lexical_entries = json_word.get('results')[0].get('lexicalEntries')
         for lexical_entry in lexical_entries:
-            entries = lexical_entry.get('entries')
-            if entries is None:
-                continue
-            for entry in entries:
-                pronunciations = entry.get('pronunciations')
-                if pronunciations is None:
-                    continue
+            pronunciations = lexical_entry.get('pronunciations')
+            if pronunciations:
                 for pronunciation in pronunciations:
                     if 'phoneticSpelling' not in pronunciation:
-                        spelling = None
                         continue
                     spelling = pronunciation.get('phoneticSpelling')
                     break
-            pronunciations = lexical_entry.get('pronunciations')
-            if pronunciations is None:
-                continue
-            for pronunciation in pronunciations:
-                if 'phoneticSpelling' not in pronunciation:
-                    spelling = None
-                    continue
-                spelling = pronunciation.get('phoneticSpelling')
+            if spelling:
                 break
-            if spelling is not None:
-                break
+            entries = lexical_entry.get('entries')
+            if entries:
+                for entry in entries:
+                    pronunciations = entry.get('pronunciations')
+                    if pronunciations:
+                        for pronunciation in pronunciations:
+                            if 'phoneticSpelling' not in pronunciation:
+                                continue
+                            spelling = pronunciation.get('phoneticSpelling')
+                            break
+                        if spelling:
+                            break
+                    senses = entry.get('senses')
+                    if senses:
+                        for sense in senses:
+                            pronunciations = sense.get('pronunciations')
+                            if pronunciations:
+                                for pronunciation in pronunciations:
+                                    if 'phoneticSpelling' not in pronunciation:
+                                        continue
+                                    spelling = pronunciation.get('phoneticSpelling')
+                                    break
+                                if spelling:
+                                    break
         if not bool(spelling):
             logger_general_fails.error('There is no spelling for "{}" word'
                                        .format(word.capitalize()))
