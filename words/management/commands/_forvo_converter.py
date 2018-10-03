@@ -61,7 +61,6 @@ def _get_word_model_value(word):
 def _save_data_to_db(word, word_mp3_path, pronunciation_dict):
     new_word = Pronunciation(word=word)
     new_word.audio = word_mp3_path
-    import pdb; pdb.set_trace()
     new_word.raw_od_data = pronunciation_dict
     new_word.save()
 
