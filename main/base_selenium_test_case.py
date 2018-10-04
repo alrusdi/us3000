@@ -10,7 +10,7 @@ class BaseSeleniumTestCase(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
         if settings.VIRTUAL_DISPLAY:
-            display = Display(visible=0, size=(800, 600))
+            display = Display(visible=0, size=(1024, 768))
             display.start()
         cls.browser = Browser('chrome')
         cls.page_object = cls.page_object_class()
