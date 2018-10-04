@@ -2,3 +2,8 @@ Django==2.1
 fudge==1.1.1
 requests==2.19.1
 ConcurrentLogHandler==0.9.1
+django-widget-tweaks==1.4.2
+jsonfield2==3.0.1
+selenium==3.14.1
+splinter==0.9.0
+PyVirtualDisplay==0.2.1

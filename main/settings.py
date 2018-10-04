@@ -38,7 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'widget_tweaks',
+    'jsonfield',
+
     'words',
+    'profiles',
 ]
 
 MIDDLEWARE = [
@@ -242,3 +247,13 @@ LOGGING = {
         },
     },
 }
+
+LOGIN_URL = '/login/'
+
+WORDS_NUMBER = 15
+
+WORDS_NUMBER_TO_REPEAT = 5
+
+WORDS_TO_REPEAT_BOUND = 1500
+
+VIRTUAL_DISPLAY = True
