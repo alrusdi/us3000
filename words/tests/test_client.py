@@ -1,10 +1,6 @@
 import os
 from datetime import date
-
 from django.contrib.auth.models import User
-from django.test import override_settings
-from django.urls import reverse
-
 from main.base_selenium_test_case import BaseSeleniumTestCase
 from main.settings import BASE_DIR
 
@@ -44,5 +40,3 @@ class IndexTest(BaseSeleniumTestCase):
         )
         self.force_login(user)
         self.browser.screenshot(screenshot_path)
-        # Запустить xvfb, отрисовать главную стрницу с помощью self.browser и сделать скриншот
-        # https://stackoverflow.com/questions/6183276/how-do-i-run-selenium-in-xvfb
