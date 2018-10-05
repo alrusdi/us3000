@@ -161,6 +161,7 @@ class ForvoImporter(object):
         raw_json = self.get_raw_json_from_html(html)
         if raw_json is None:
             return
+
         forvo_json = self.normalize_raw_json(raw_json)
         if forvo_json is None:
             return
@@ -188,9 +189,6 @@ class MultithreadingParser:
         for i, word in enumerate(words):
             if ' ' in word:
                 continue
-            if i == 3200:
-                break
-            # print(word, 'added to queue')
             q.put_nowait(word)
         return q
 
