@@ -51,10 +51,10 @@ class ForvoImporter(object):
 
     def get_raw_json_from_html(self, html):
         div_pos = html.find('class="intro"')
-        pre_open_pos = html.find('pre', div_pos)
-        pre_close_pos = html.find('pre', pre_open_pos + 1)
+        pre_open_pos = html.find('<pre>', div_pos)
+        pre_close_pos = html.find('</pre>', pre_open_pos + 1)
         if 0 < div_pos < pre_open_pos < pre_close_pos:
-            return html[pre_open_pos + 5:pre_close_pos - 3]
+            return html[pre_open_pos + 6:pre_close_pos - 1]
         else:
             logger_general_fails.error('Unexpected HTML Response from Forvo')
             logger_forvo_fails.error(self.word)
@@ -161,6 +161,7 @@ class ForvoImporter(object):
         if self._check_if_sounds_exist(sounds_dir):
             return
         html = self.get_html_from_forvo()
+        print(html)
         if html is None:
             return
         raw_json = self.get_raw_json_from_html(html)

@@ -68,7 +68,6 @@ def _save_data_to_db(word, word_mp3_path, pronunciation_dict):
 def add_data_to_pronunciation_model():
     sounds_dir_path = _concat_path(settings.BASE_DIR, 'media', 'sounds')
     words_list = _get_dir_items_list(sounds_dir_path)
-    print(words_list)
     for word in words_list:
         if check_if_pronunc_exist_in_db(word):
             continue
