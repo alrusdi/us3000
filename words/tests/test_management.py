@@ -322,22 +322,15 @@ class ForvoImporterTest(TestCase):
                           'ERROR:forvo_fails:fake_word'])
         # что будет если json не корректный - 5
 
-    # @fudge.patch('words.management.commands._forvo_importer.os.mkdir')
-    # def test_11(self, fake_create_dir):
-    #     fake_create_dir.expects_call().with_args('dir_path')
-    #     test_word = ForvoImporter('eleventh')
-    #     res = test_word.create_word_dir('dir_path')
-        # проверить что создается директория с именем конкретного слова
-
     @fudge.patch('words.management.commands._forvo_importer.os.mkdir')
     def test_11(self, fake_create_dir):
         fake_create_dir.expects_call().with_args('dir_path')
         test_word = ForvoImporter('eleventh')
         res = test_word.save_result('dir_path')
-        # проверить что создается директория с именем конкретного слова
+        # проверить что создается директория с именем конкретного слова - ???
 
     def test_12(self):
-        # что будет, если директория с именем конкретного слова уже существует
+        # что будет, если директория с именем конкретного слова уже существует - ???
         pass
 
     @fudge.patch('words.management.commands._forvo_importer.ForvoImporter'
@@ -347,7 +340,7 @@ class ForvoImporterTest(TestCase):
         test_word = ForvoImporter('seventh')
         res = test_word.is_path_exist('not/exist/mp3/path')
         self.assertEqual(res, False)
-        # проверить, существует ли путь
+        # проверить, существует ли путь - ???
 
     @fudge.patch('words.management.commands._forvo_importer.'
                  'ForvoImporter.is_there_dir_write_permissions')
@@ -356,28 +349,13 @@ class ForvoImporterTest(TestCase):
         test_word = ForvoImporter('seventh')
         res = test_word.is_there_dir_write_permissions('not/exist/mp3/path')
         self.assertEqual(res, False)
-        # проверить, есть ли права записи
-
-    def test_13(self):
-        # проверить, есть ли доступ "запись" в директорию
-        # с именем конкретного слова
-        pass
+        # проверить, есть ли права записи - ???
 
     def test_if_abs_mp3_path_is_created_correctly(self):
         test_word = ForvoImporter('sixth')
         test_path = test_word.make_mp3_abs_path('audio', 33)
         self.assertEqual(test_path, 'audio/sixth_34.mp3')
-        # проверить что имя полного пути для файла создается корректно
-
-    @fudge.patch('words.management.commands._forvo_importer.requests.get')
-    def test_uses_requests_to_get_mp3_from_forvo(self, fake_get):
-        url = 'correct_mp3_url'
-        fake_get.expects_call().returns(FakeRequestsResponse('mp3'))
-        test_word = ForvoImporter('tenth')
-        res = test_word.get_mp3_from_forvo(url)
-        self.assertEqual(res, 'mp3')
-        # проверить что скачивается корректный mp3 файл, если переданы
-        # корректные параметры
+        # проверить что имя полного пути для файла создается корректно - пофиксить
 
     @fudge.patch('words.management.commands._forvo_importer.requests.get')
     def test_uses_requests_to_raise_connection_error_mp3(self, fake_get):
@@ -386,7 +364,7 @@ class ForvoImporterTest(TestCase):
         test_word = ForvoImporter('eleventh')
         res = test_word.get_mp3_from_forvo(url)
         self.assertEqual(res, None)
-        # что если при скачивании mp3 возникнет ошибка
+        # что если при скачивании mp3 возникнет ошибка - пофиксить
 
     @fudge.patch('words.management.commands._forvo_importer.'
                  'ForvoImporter.get_html_from_forvo')
@@ -399,7 +377,7 @@ class ForvoImporterTest(TestCase):
         res = test_word.import_sound()
         self.assertEqual(res, None)
         # что будет, если в словаре items у ключей code и
-        # country отсутствуют занчения en и United States соответственно
+        # country отсутствуют занчения en и United States соответственно - пофиксить
 
     @fudge.patch('builtins.open')
     def test_save_proper_data_to_file(self, fake_open):
@@ -419,7 +397,7 @@ class ForvoImporterTest(TestCase):
             FakeContextManager())
         test_word = ForvoImporter('fifth')
         test_word.save_mp3('some_path', 'some_data')
-        # Убедиться что функция 'save_result' сохраняет файлы
+        # Убедиться что функция 'save_result' сохраняет файлы - пофиксить
         # в нужную директорию
         pass
 
