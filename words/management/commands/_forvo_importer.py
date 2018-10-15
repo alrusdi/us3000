@@ -73,8 +73,8 @@ class ForvoImporter(object):
         if len(items) > 0:
             return items
         else:
-            logger_general_fails.error('Response from Forvo has'
-                                       ' unexpected JSON format')
+            logger_general_fails.error('JSON response from Forvo'
+                                       ' has unexpected structure')
             logger_forvo_fails.error(self.word)
 
     def get_mp3_url_from_json(self, item):
@@ -83,8 +83,8 @@ class ForvoImporter(object):
         if len(mp3_url) > 0:
             return mp3_url.replace('\/', '/')
         else:
-            logger_general_fails.error('Response from Forvo has'
-                                       ' unexpected JSON format')
+            logger_general_fails.error('JSON response from Forvo does not'
+                                       ' have required keys')
             logger_forvo_fails.error(self.word)
 
     def get_mp3_from_forvo(self, mp3_url):

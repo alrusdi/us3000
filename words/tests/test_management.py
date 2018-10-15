@@ -190,7 +190,7 @@ class ForvoImporterTest(TestCase):
         res = test_word.get_html_from_forvo()
         self.assertEqual(res, 'some html code')
         # проверить что метод 'get_html_from_forvo' получает корректные данные
-        # при отправке корректного запроса
+        # при отправке корректного запроса - Ok
 
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
     def test_uses_requests_to_raise_connection_error_html(self, fake_post):
@@ -201,97 +201,133 @@ class ForvoImporterTest(TestCase):
         ) as general, self.assertLogs(
             logger='forvo_fails', level='ERROR'
         ) as forvo:
-            test_word.get_html_from_forvo()
+            test_word.import_sound()
         self.assertEqual([*general.output, *forvo.output],
                          ['ERROR:general:Connection error',
                           'ERROR:forvo_fails:fake_word'])
         # что будет, если произойдет ConnectionError - 1
 
-    @fudge.patch('words.management.commands._forvo_importer.requests.post',
-                 'words.management.commands._forvo_importer'
-                 '.logger_general_fails.error',
-                 'words.management.commands._forvo_importer'
-                 '.logger_forvo_fails.error')
-    def test_uses_requests_to_raise_http_error(self, fake_post,
-                                               fake_general_log,
-                                               fake_forvo_log):
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_uses_requests_to_raise_http_error(self, fake_post):
         http_error = 418
         fake_post.expects_call().raises(requests.exceptions.HTTPError(
             http_error))
-        test_word = ForvoImporter('third')
-        res = test_word.get_html_from_forvo()
-        self.assertEqual(res, None)
+        test_word = ForvoImporter('fake_word')
+        with self.assertLogs(
+                logger='general', level='ERROR'
+        ) as general, self.assertLogs(
+            logger='forvo_fails', level='ERROR'
+        ) as forvo:
+            test_word.import_sound()
+        self.assertEqual([*general.output, *forvo.output],
+                         ['ERROR:general:Following http error occurred: 418',
+                          'ERROR:forvo_fails:fake_word'])
+        # 2
 
-    def test_if_forvo_response_has_unexpected_structure(self):
-        html = '<html><div class="not_intro"><pr>some data</pr></div></html>'
-        test_word = ForvoImporter('fourth')
-        test_word.get_html_from_forvo()
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_if_forvo_html_response_has_unexpected_structure(self, fake_post):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "fake_word"
+        }
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse('some unexpected html code')
+        )
+        test_word = ForvoImporter('fake_word')
+        with self.assertLogs(
+                logger='general', level='ERROR'
+        ) as general, self.assertLogs(
+            logger='forvo_fails', level='ERROR'
+        ) as forvo:
+            test_word.import_sound()
+        self.assertEqual([*general.output, *forvo.output],
+                         ['ERROR:general:Unexpected HTML Response from Forvo',
+                          'ERROR:forvo_fails:fake_word'])
+        # html не соответствует тому что мы ожидали - 3
 
-    @fudge.patch('words.management.commands._forvo_importer'
-                 '.logger_general_fails.error',
-                 'words.management.commands._forvo_importer'
-                 '.logger_forvo_fails.error')
-    def test_if_forvo_response_has_unexpected_structure(self,
-                                                        fake_general_log,
-                                                        fake_forvo_log):
-        html = '<html><div class="not_intro"><pr>some data</pr></div></html>'
-        fake_general_log.expects_call().with_args(
-            'Unexpected HTML Response from Forvo')
-        fake_forvo_log.expects_call().with_args('fifth')
-        test_word = ForvoImporter('fifth')
-        test_word.get_raw_json_from_html(html)
-        # html не соответствует тому что мы ожидали
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_if_json_from_forvo_has_unexpected_structure(self, fake_post):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "fake_word"
+        }
+        html_response = ('<div class="intro"><pre> {&quot;not_items&quot;:'
+                         ' [{&quot;pathmp3&quot;: &quot;mp3_url&quot;}]} '
+                         '</pre></div>')
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse(html_response)
+        )
+        test_word = ForvoImporter('fake_word')
+        with self.assertLogs(
+                logger='general', level='ERROR'
+        ) as general, self.assertLogs(
+            logger='forvo_fails', level='ERROR'
+        ) as forvo:
+            test_word.import_sound()
+        self.assertEqual([*general.output, *forvo.output],
+                         ['ERROR:general:JSON response from Forvo has unexpected structure',
+                          'ERROR:forvo_fails:fake_word'])
+        # 4
 
-    @fudge.patch('words.management.commands._forvo_importer'
-                 '.logger_general_fails.error',
-                 'words.management.commands._forvo_importer'
-                 '.logger_forvo_fails.error')
-    def test_if_json_from_forvo_has_correct_structure(self,
-                                                      fake_general_log,
-                                                      fake_forvo_log):
-        raw_json = ('{&quot;"items&quot;: &quot;value&quot;,'
-                    ' &quot;another_key&quot;: &quot;another_value&quot;}')
-        fake_general_log.expects_call().with_args(
-            'Response from Forvo has unexpected JSON format')
-        fake_forvo_log.expects_call().with_args('sixth')
-        test_word = ForvoImporter('sixth')
-        test_word.normalize_raw_json(raw_json)
-
-    @fudge.patch('words.management.commands._forvo_importer'
-                 '.logger_general_fails.error',
-                 'words.management.commands._forvo_importer'
-                 '.logger_forvo_fails.error')
-    def test_1_if_json_from_forvo_has_correct_required_keys(self,
-                                                            fake_general_log,
-                                                            fake_forvo_log):
-        json = {'item': {'pathmp3': 'mp3_url'}}
-        fake_general_log.expects_call().with_args(
-            'Response from Forvo has unexpected JSON format')
-        fake_forvo_log.expects_call().with_args('seventh')
-        test_word = ForvoImporter('seventh')
-        test_word.get_items_from_forvo_json(json)
-        # что будет если json не корректный
-
-    @fudge.patch('words.management.commands._forvo_importer'
-                 '.logger_general_fails.error',
-                 'words.management.commands._forvo_importer'
-                 '.logger_forvo_fails.error')
-    def test_2_if_json_from_forvo_has_correct_required_keys(self,
-                                                            fake_general_log,
-                                                            fake_forvo_log):
-        json = {'pathmp3': 'mp3_url\/\/\/\/\/'}
-        fake_general_log.expects_call().with_args(
-            'Response from Forvo has unexpected JSON format')
-        fake_forvo_log.expects_call().with_args('eighth')
-        test_word = ForvoImporter('eighth')
-        test_word.get_items_from_forvo_json(json)
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_if_json_from_forvo_has_not_required_keys(self, fake_post):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "fake_word"
+        }
+        html_response = ('<div class="intro"><pre> {&quot;items&quot;:'
+                         ' [{&quot;pathmp777&quot;: &quot;mp3_url&quot;, '
+                         '&quot;code&quot;: &quot;en&quot;,'
+                         '&quot;country&quot;: &quot;United States&quot;}]} '
+                         '</pre></div>')
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse(html_response)
+        )
+        test_word = ForvoImporter('fake_word')
+        with self.assertLogs(
+                logger='general', level='ERROR'
+        ) as general, self.assertLogs(
+            logger='forvo_fails', level='ERROR'
+        ) as forvo:
+            test_word.import_sound()
+        self.assertEqual([*general.output, *forvo.output],
+                         ['ERROR:general:JSON response from Forvo does not have required keys',
+                          'ERROR:forvo_fails:fake_word'])
+        # что будет если json не корректный - 5
 
     # @fudge.patch('words.management.commands._forvo_importer.os.mkdir')
     # def test_11(self, fake_create_dir):
     #     fake_create_dir.expects_call().with_args('dir_path')
     #     test_word = ForvoImporter('eleventh')
     #     res = test_word.create_word_dir('dir_path')
-    #     # проверить что создается директория с именем конкретного слова
+        # проверить что создается директория с именем конкретного слова
 
     @fudge.patch('words.management.commands._forvo_importer.os.mkdir')
     def test_11(self, fake_create_dir):
@@ -386,6 +422,23 @@ class ForvoImporterTest(TestCase):
         # Убедиться что функция 'save_result' сохраняет файлы
         # в нужную директорию
         pass
+
+    # @fudge.patch('builtins.open')
+    # def test_save_proper_data_to_file(self, fake_open):
+    #     class FakeFile:
+    #         def write(self, *args, **kwargs):
+    #             assert 'some_data' in args
+    #
+    #     class FakeContextManager:
+    #         def __enter__(self):
+    #             return FakeFile()
+    #
+    #         def __exit__(self, *args):
+    #             pass
+    #     fake_open.expects_call().with_args('some_path', 'w').returns(
+    #         FakeContextManager())
+    #     test_word = ODImporter('fifth')
+    #     test_word.save_article('some_path', 'some_data')
 
 
 class ForvoConverterTest(TestCase):
