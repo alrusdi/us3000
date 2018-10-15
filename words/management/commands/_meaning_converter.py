@@ -44,20 +44,28 @@ def _get_meaning_from_json(json_word, word):
                 senses = entry.get('senses')
                 for sense in senses:
                     meaning = sense.get('definitions')
+                    examples = sense.get('examples')
                     if meaning is None:
                         meaning = sense.get('short_definitions')
                     if meaning is None:
                         meaning = sense.get('crossReferenceMarkers')
                     if meaning is not None:
-                        meanings_list.append(meaning[0])
+                        meanings_list.append(
+                            dict(meaning=meaning[0],
+                                 example=examples)
+                        )
                     subsenses = sense.get('subsenses')
                     if subsenses is None:
                         continue
                     for subsense in subsenses:
                         meaning = subsense.get('definitions')
+                        examples = subsense.get('examples')
                         if meaning is None:
                             continue
-                        meanings_list.append(meaning[0])
+                        meanings_list.append(
+                            dict(meaning=meaning[0],
+                                 example=examples)
+                        )
         if len(meanings_list) == 0:
             logger_general_fails.error('There is no meaning for "{}" word'
                                        .format(word.capitalize()))
@@ -73,8 +81,9 @@ def _get_meaning_from_json(json_word, word):
 def _save_data_to_db(word, meanings_list):
     for i, meaning in enumerate(meanings_list):
         new_meaning = Meaning(word=word)
-        new_meaning.value = meaning
+        new_meaning.value = meaning['meaning']
         new_meaning.order = i
+        new_meaning.examples = meaning['example']
         new_meaning.save()
 
 

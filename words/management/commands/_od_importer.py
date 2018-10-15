@@ -7,6 +7,16 @@ import builtins
 logger_od_fails = logging.getLogger("od_fails")
 
 
+def _get_files_list_in_dir(dir_path):
+    return os.listdir(dir_path)
+
+
+def check_if_od_article_exist(word, dir_path):
+    files_list = _get_files_list_in_dir(dir_path)
+    filename = '{}.json'.format(word)
+    return filename in files_list
+
+
 class ODImporter:
     def __init__(self, word):
         self.word = word

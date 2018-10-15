@@ -6,7 +6,6 @@ from ._words import words
 import time
 import os
 from django.conf import settings
-from words.models import Pronunciation
 import logging
 
 
@@ -18,8 +17,13 @@ class ForvoImporter(object):
     def __init__(self, word):
         self.word = word
 
-    def check_if_pronunc_exist_in_db(self):
-        return Pronunciation.objects.filter(word__value=self.word).exists()
+    @staticmethod
+    def _get_files_list_in_dir(dir_path):
+        return os.listdir(dir_path)
+
+    def _check_if_sounds_exist(self, dir_path):
+        sound_dirs_list = self._get_files_list_in_dir(dir_path)
+        return self.word in sound_dirs_list
 
     def get_html_from_forvo(self):
         url = 'https://api.forvo.com/demo'
@@ -47,10 +51,10 @@ class ForvoImporter(object):
 
     def get_raw_json_from_html(self, html):
         div_pos = html.find('class="intro"')
-        pre_open_pos = html.find('pre', div_pos)
-        pre_close_pos = html.find('pre', pre_open_pos + 1)
+        pre_open_pos = html.find('<pre>', div_pos)
+        pre_close_pos = html.find('</pre>', pre_open_pos + 1)
         if 0 < div_pos < pre_open_pos < pre_close_pos:
-            return html[pre_open_pos + 5:pre_close_pos - 3]
+            return html[pre_open_pos + 6:pre_close_pos - 1]
         else:
             logger_general_fails.error('Unexpected HTML Response from Forvo')
             logger_forvo_fails.error(self.word)
@@ -153,7 +157,8 @@ class ForvoImporter(object):
         self.save_mp3(mp3_abs_path, mp3)
 
     def import_sound(self):
-        if self.check_if_pronunc_exist_in_db():
+        sounds_dir = self.make_abs_sounds_dir_path()
+        if self._check_if_sounds_exist(sounds_dir):
             return
         html = self.get_html_from_forvo()
         if html is None:
@@ -179,49 +184,47 @@ class ForvoImporter(object):
 
 
 class MultithreadingParser:
-    def __init__(self, threads_count=30):
-        self.threads_count = threads_count
+    def __init__(self, threads_count=50):
         self.queue = self._make_queue()
+        if self.queue.qsize() < threads_count:
+            self.threads_count = self.queue.qsize()
+        else:
+            self.threads_count = threads_count
 
-    def _make_queue(self):
+    @staticmethod
+    def _make_queue():
         q = queue.Queue()
-        for i, word in enumerate(words):
+        for word in words:
             if ' ' in word:
                 continue
-            if i == 3200:
-                break
-            # print(word, 'added to queue')
             q.put_nowait(word)
         return q
 
     def run(self):
-        # threads = []
-        for i in range(self.threads_count-1):
-            thread_name = 'thread_{}'.format(i + 1)
+        threads = []
+        for i in range(self.threads_count):
+            thread_name = 'thread_{}'.format(i - 1)
             thread = threading.Thread(
                 target=self.worker, args=(thread_name, ), daemon=True)
             thread.start()
-        # threads.append(thread)
-        # for thread in threads:
-        #     thread.join()
+            threads.append(thread)
         while True:
             if self.queue.qsize() < 1:
-                break
-            # print('Queue size is {} and {} so far..'.format(
-            #    self.queue.qsize(), threading.active_count()))
-            time.sleep(1)
+                for _ in range(self.threads_count):
+                    self.queue.put(None)
+                for thread in threads:
+                    thread.join()
+                return
 
     def worker(self, thread_name):
         while True:
-            try:
-                task = self.queue.get(block=True)
-                # print('task, thread_name:', task, thread_name)
-                time.sleep(1)
-            except queue.Empty:
-                return
+            task = self.queue.get(block=True)
+            if task is None:
+                break
             fi = ForvoImporter(task)
             try:
                 fi.import_sound()
+                time.sleep(1)
             except Exception as err:
                 logger_general_fails.error('Following error occurred: {}'.format(err))
             self.queue.task_done()
