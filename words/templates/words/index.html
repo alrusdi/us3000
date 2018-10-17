@@ -16,14 +16,14 @@
         <h2 class="uk-text-bold uk-h1 uk-margin-remove-adjacent uk-margin-remove-top">Just do it!</h2>
         <div id="learning_states">
             <div class="ls-item uk-card uk-card-body uk-card-default uk-card-small uk-margin-bottom uk-margin-small" v-for="word in words">
-                <div class="uk-grid-collapse uk-text-center" uk-grid>
-                    <div class="uk-width-1-3">
-                        <div class="uk-text-lead uk-padding" >[[ word.value ]]</div>
+                <div class="uk-child-width-expand@s uk-text-center" uk-grid>
+                    <div class="uk-width-1-3@l uk-width-1-3@m uk-width-1-1@s uk-margin-auto-vertical">
+                        <div class="uk-text-lead">[[ word.value ]]</div>
                     </div>
                     <div class="uk-margin-left uk-margin-small">
                         <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know how to pronounce it?</div>
-                        <div class="uk-text-center" uk-grid>
-                            <div class="ls-audio-items">
+                        <div class="uk-text-center uk-grid-small" uk-grid>
+                            <div class="uk-width-1-4 ls-audio-items">
                                 <pronunciation
                                         v-for="audio in word.audio"
                                         v-bind="audio"
@@ -34,8 +34,8 @@
                             </div>
                             <div class="ls-yesno">
                                 <div class="uk-button-group">
-                                    <button class="uk-button" v-on:click="word.is_user_know_pronunciation=true" v-bind:class="{'uk-button-success': word.is_user_know_pronunciation}">YES</button>
-                                    <button class="uk-button" v-on:click="word.is_user_know_pronunciation=false" v-bind:class="{'uk-button-danger': !word.is_user_know_pronunciation}">NO</button>
+                                    <button class="uk-button uk-button-small" v-on:click="word.is_user_know_pronunciation=true" v-bind:class="{'uk-button-success': word.is_user_know_pronunciation}">YES</button>
+                                    <button class="uk-button uk-button-small" v-on:click="word.is_user_know_pronunciation=false" v-bind:class="{'uk-button-danger': !word.is_user_know_pronunciation}">NO</button>
                                 </div>
                             </div>
                         </div>
@@ -45,8 +45,8 @@
                         <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know what does it mean?</div>
                         <div class="ls-yesno">
                             <div class="uk-button-group">
-                                <button class="uk-button" v-on:click="word.is_user_know_meaning=true" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
-                                <button class="uk-button" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
+                                <button class="uk-button uk-button-small" v-on:click="word.is_user_know_meaning=true" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
+                                <button class="uk-button uk-button-small" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
                             </div>
                         </div>
                         <a class="uk-link uk-text-small" data="test-show-meanings-link" v-on:click="word.ui.show_meanings=!word.ui.show_meanings">Not sure?</a>

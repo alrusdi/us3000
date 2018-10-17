@@ -1,4 +1,6 @@
-var get_template = function (template_name) {
+"use strict";
+
+const get_template = function (template_name) {
     var tpl = document.getElementById(template_name).innerText;
     return tpl;
 };
@@ -22,7 +24,7 @@ Vue.component('pronunciation', {
 });
 
 
-var vue_app = new Vue({
+const vue_app = new Vue({
     el: "#learning_states",
     delimiters: ['[[', ']]'],
     data: {
