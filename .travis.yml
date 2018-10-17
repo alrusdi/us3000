@@ -13,4 +13,4 @@ branches:
  only:
   - master
 
-script: manage.py test
+script: python manage.py test
