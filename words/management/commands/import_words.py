@@ -16,19 +16,26 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dir_path = os.path.join(settings.BASE_DIR, 'media', 'od')
-        app_id = settings.OXFORD_DICTIONARY_APP_ID
-        app_key = settings.OXFORD_DICTIONARY_APP_KEY
+        od_conf = settings.OXFORD_DICTIONARY_CONFIG
+        next_od_account_idx = 0
         number_of_consecutive_errors = 0
         for i, word in enumerate(words):
             if check_if_od_article_exist(word, dir_path):
                 continue
             if ' ' in word:
                 continue
-            iteration_id = i % 2
             word_obj = ODImporter(word)
-            response_message = word_obj.create_word_article(dir_path,
-                                                            app_id[iteration_id],
-                                                            app_key[iteration_id])
+
+            conf = od_conf[next_od_account_idx]
+            next_od_account_idx += 1
+            if next_od_account_idx == len(od_conf):
+                next_od_account_idx = 0
+
+            response_message = word_obj.create_word_article(
+                dir_path,
+                conf['app_id'],
+                conf['app_key']
+            )
             if response_message == 'Data successfully saved':
                 number_of_consecutive_errors = 0
             else:

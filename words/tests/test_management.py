@@ -52,8 +52,9 @@ class ODImporterTest(TestCase):
         self.assertEqual(msg, 'Data successfully saved')
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
-    @override_settings(OXFORD_DICTIONARY_APP_ID='test_app_id',
-                       OXFORD_DICTIONARY_APP_KEY='test_app_key')
+    @override_settings(
+        OXFORD_DICTIONARY_CONFIG=[{'app_id': 'test_app_id', 'app_key': 'test_app_key'}]
+    )
     def test_uses_requests_to_get_article_from_od(self, fake_get):
         url = 'https://od-api.oxforddictionaries.com'
         expected_headers = {'app_id': 'test_app_id',
@@ -62,8 +63,10 @@ class ODImporterTest(TestCase):
             url), headers=expected_headers).returns(
             FakeRequestsResponse('{}'))
         test_word = ODImporter('something')
-        msg, res = test_word.get_article(settings.OXFORD_DICTIONARY_APP_ID,
-                                         settings.OXFORD_DICTIONARY_APP_KEY)
+        msg, res = test_word.get_article(
+            settings.OXFORD_DICTIONARY_CONFIG[0]['app_id'],
+            settings.OXFORD_DICTIONARY_CONFIG[0]['app_key']
+        )
         self.assertEqual(msg, 'Data successfully saved')
 
     @fudge.patch('words.management.commands._od_importer.requests.get')
@@ -458,9 +461,12 @@ class ForvoImporterTest(TestCase):
                           'ERROR:forvo_fails:fake_word'])
         # что если при скачивании mp3 возникнет ошибка - 6
 
-    @fudge.patch('words.management.commands._forvo_importer.'
-                 'ForvoImporter.get_html_from_forvo')
-    def test_if_forvo_json_does_not_have_required_keys1(self, fake_get_html):
+    @fudge.patch(
+        'words.management.commands._forvo_importer.ForvoImporter.get_html_from_forvo',
+        'words.management.commands._forvo_importer.ForvoImporter._check_if_sounds_exist'
+    )
+    def test_if_forvo_json_does_not_have_required_keys1(self, fake_get_html, fake_check):
+        fake_check.expects_call().returns(False)
         fake_get_html.expects_call().returns(
             ('<html><div class="intro"><pre> {&quot;items&quot;:'
              ' [{&quot;pathmp3&quot;: &quot;mp3/url/&quot;}]} </pre></html>')

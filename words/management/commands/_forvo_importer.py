@@ -161,7 +161,7 @@ class ForvoImporter(object):
         if self._check_if_sounds_exist(sounds_dir):
             return
         html = self.get_html_from_forvo()
-        print(html)
+        # print(html)
         if html is None:
             return
         raw_json = self.get_raw_json_from_html(html)
@@ -185,7 +185,7 @@ class ForvoImporter(object):
 
 
 class MultithreadingParser:
-    def __init__(self, threads_count=50):
+    def __init__(self, threads_count=10):
         self.queue = self._make_queue()
         if self.queue.qsize() < threads_count:
             self.threads_count = self.queue.qsize()
