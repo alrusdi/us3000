@@ -161,6 +161,7 @@ class ForvoImporter(object):
         if self._check_if_sounds_exist(sounds_dir):
             return
         html = self.get_html_from_forvo()
+        print(html)
         if html is None:
             return
         raw_json = self.get_raw_json_from_html(html)

@@ -512,6 +512,8 @@ class ForvoImporterTest(TestCase):
 
     # TODO move url and expected data to class variables
 
+
 class ForvoConverterTest(TestCase):
     def test_correctly_format_json(self):
         pass
+
