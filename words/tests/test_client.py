@@ -1,5 +1,7 @@
 import os
 from datetime import date
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from main.base_selenium_test_case import BaseSeleniumTestCase
 from main.settings import BASE_DIR
@@ -15,6 +17,8 @@ class IndexTest(BaseSeleniumTestCase):
     page_object_class = IndexPageObject
 
     def test_show_meanings(self):
+        if not settings.TEST_CLIENTSIDE_CODE:
+            return
         password = 'test12345678'
         user = User.objects.create_user(
             username='test_username',
@@ -28,6 +32,8 @@ class IndexTest(BaseSeleniumTestCase):
         assert meanings_container.visible
 
     def test_show_main_page(self):
+        if not settings.TEST_CLIENTSIDE_CODE:
+            return
         screenshot_name = '{}_{}_'.format(__name__, date.today())
         screenshot_path = os.path.join(
             os.path.join(BASE_DIR, 'words', 'tests',

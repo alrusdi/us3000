@@ -31,7 +31,7 @@ class SetLearningStateViewTest(TestCase):
         )
 
         #  ? 'change-learning-state/meaning/1/1/' ! WordLearningState.is_user_know_meaning == True
-        response = self.client.get('/change-learning-state/meaning/1/1/')
+        response = self.client.get('/change-learning-state/meaning/1/1/0/')
         self.assertEqual(response.status_code, 200)
         is_user_know_meaning = WordLearningState.objects.filter(
             id=1
@@ -39,7 +39,7 @@ class SetLearningStateViewTest(TestCase):
         self.assertEqual(is_user_know_meaning, True)
 
         # ? 'change-learning-state/meaning/1/0/' ! WordLearningState.is_user_know_meaning == False
-        response = self.client.get('/change-learning-state/meaning/1/0/')
+        response = self.client.get('/change-learning-state/meaning/1/0/0/')
         self.assertEqual(response.status_code, 200)
         is_user_know_meaning = WordLearningState.objects.filter(
             id=1
@@ -47,7 +47,7 @@ class SetLearningStateViewTest(TestCase):
         self.assertEqual(is_user_know_meaning, False)
 
         # ? 'change-learning-state/pronunciation/1/1/' ! WordLearningState.is_user_know_pronunciation == True
-        response = self.client.get('/change-learning-state/pronunciation/1/1/')
+        response = self.client.get('/change-learning-state/pronunciation/1/1/0/')
         self.assertEqual(response.status_code, 200)
         is_user_know_pronunciation = WordLearningState.objects.filter(
             id=1
@@ -55,7 +55,7 @@ class SetLearningStateViewTest(TestCase):
         self.assertEqual(is_user_know_pronunciation, True)
 
         # ? 'change-learning-state/pronunciation/1/0/' ! WordLearningState.is_user_know_pronunciation == False
-        response = self.client.get('/change-learning-state/pronunciation/1/0/')
+        response = self.client.get('/change-learning-state/pronunciation/1/0/0/')
         self.assertEqual(response.status_code, 200)
         is_user_know_pronunciation = WordLearningState.objects.filter(
             id=1
@@ -63,13 +63,13 @@ class SetLearningStateViewTest(TestCase):
         self.assertEqual(is_user_know_pronunciation, False)
 
     def test_wrong_request_sent(self):
-        response = self.client.get('/change-learning-state/some-wrong-value/1/0/')
+        response = self.client.get('/change-learning-state/some-wrong-value/1/0/0/')
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.get('/change-learning-state/meaning/2/0/')
+        response = self.client.get('/change-learning-state/meaning/2/0/0/')
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.get('/change-learning-state/pronunciation/1/3/')
+        response = self.client.get('/change-learning-state/pronunciation/1/3/0/')
         self.assertEqual(response.status_code, 404)
 
     def test_sets_preferred_pronunciations(self):
