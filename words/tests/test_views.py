@@ -64,13 +64,13 @@ class SetLearningStateViewTest(TestCase):
 
     def test_wrong_request_sent(self):
         response = self.client.get('/change-learning-state/some-wrong-value/1/0/0/')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
 
         response = self.client.get('/change-learning-state/meaning/2/0/0/')
         self.assertEqual(response.status_code, 404)
 
         response = self.client.get('/change-learning-state/pronunciation/1/3/0/')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
 
     def test_sets_preferred_pronunciations(self):
         test_word = Word.objects.create(

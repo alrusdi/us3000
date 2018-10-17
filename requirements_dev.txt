@@ -7,3 +7,4 @@ jsonfield2==3.0.1
 selenium==3.14.1
 splinter==0.9.0
 PyVirtualDisplay==0.2.1
+six==1.11.0
