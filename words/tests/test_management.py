@@ -288,7 +288,7 @@ class ForvoImporterTest(TestCase):
         # 4
 
     @fudge.patch('words.management.commands._forvo_importer.requests.post')
-    def test_if_json_from_forvo_has_not_required_keys(self, fake_post):
+    def test_if_forvo_json_does_not_have_required_keys(self, fake_post):
         url = 'api.forvo.com'
         expected_data = {
             "action": "word-pronunciations",
@@ -322,11 +322,74 @@ class ForvoImporterTest(TestCase):
                           'ERROR:forvo_fails:fake_word'])
         # что будет если json не корректный - 5
 
-    @fudge.patch('words.management.commands._forvo_importer.os.mkdir')
-    def test_11(self, fake_create_dir):
-        fake_create_dir.expects_call().with_args('dir_path')
-        test_word = ForvoImporter('eleventh')
-        res = test_word.save_result('dir_path')
+    @fudge.patch('words.management.commands._forvo_importer.requests.post')
+    def test_1_if_forvo_json_does_not_have_required_keys(self, fake_post):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "fake_word"
+        }
+        html_response = ('<div class="intro"><pre> {&quot;items&quot;:'
+                         ' [{&quot;pathmp3&quot;: &quot;mp3_url&quot;, '
+                         '&quot;not_code&quot;: &quot;en&quot;,'
+                         '&quot;not_country1&quot;: &quot;United States&quot;}]} '
+                         '</pre></div>')
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse(html_response)
+        )
+        test_word = ForvoImporter('fake_word')
+        test_word.import_sound()
+        # 7
+
+    @fudge.patch('words.management.commands._forvo_importer.requests.post',
+                 'words.management.commands._forvo_importer.requests.get',
+                 'words.management.commands._forvo_importer.os.mkdir')
+    def test_11(self, fake_post, fake_get, fake_mkdir):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "fake_word1"
+        }
+        mp3_file = b'1234567890'
+        html_response = ('<div class="intro"><pre> {&quot;items&quot;:'
+                         ' [{&quot;pathmp3&quot;: &quot;mp3_url&quot;, '
+                         '&quot;code&quot;: &quot;en&quot;,'
+                         '&quot;country&quot;: &quot;United States&quot;}]} '
+                         '</pre></div>')
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse(html_response)
+        )
+        fake_get.expects_call().returns(
+            FakeRequestsResponse(mp3_file)
+        )
+        fake_mkdir.expects_call().with_args()
+        test_word = ForvoImporter('fake_word1')
+        test_word.import_sound()
+        # with self.assertLogs(
+        #         logger='general', level='ERROR'
+        # ) as general, self.assertLogs(
+        #     logger='forvo_fails', level='ERROR'
+        # ) as forvo:
+        #     test_word.import_sound()
+        # self.assertEqual([*general.output, *forvo.output],
+        #                  ['ERROR:general:Connection error',
+        #                   'ERROR:forvo_fails:fake_word'])
         # проверить что создается директория с именем конкретного слова - ???
 
     def test_12(self):
@@ -357,18 +420,47 @@ class ForvoImporterTest(TestCase):
         self.assertEqual(test_path, 'audio/sixth_34.mp3')
         # проверить что имя полного пути для файла создается корректно - пофиксить
 
-    @fudge.patch('words.management.commands._forvo_importer.requests.get')
-    def test_uses_requests_to_raise_connection_error_mp3(self, fake_get):
-        url = 'correct/mp3/url'
+    @fudge.patch('words.management.commands._forvo_importer.requests.post',
+                 'words.management.commands._forvo_importer.requests.get')
+    def test_uses_requests_to_raise_connection_error_mp3(self, fake_post,
+                                                         fake_get):
+        url = 'api.forvo.com'
+        expected_data = {
+            "action": "word-pronunciations",
+            "format": "json",
+            "id_lang_speak": "39",
+            "id_order": "",
+            "limit": "",
+            "rate": "",
+            "send": "",
+            "username": "",
+            "word": "fake_word"
+        }
+        html_response = ('<div class="intro"><pre> {&quot;items&quot;:'
+                         ' [{&quot;pathmp3&quot;: &quot;mp3_url&quot;, '
+                         '&quot;code&quot;: &quot;en&quot;,'
+                         '&quot;country&quot;: &quot;United States&quot;}]} '
+                         '</pre></div>')
+        fake_post.expects_call().with_args(
+            arg.contains(url), data=expected_data).returns(
+            FakeRequestsResponse(html_response)
+        )
         fake_get.expects_call().raises(requests.exceptions.ConnectionError)
-        test_word = ForvoImporter('eleventh')
-        res = test_word.get_mp3_from_forvo(url)
-        self.assertEqual(res, None)
-        # что если при скачивании mp3 возникнет ошибка - пофиксить
+        test_word = ForvoImporter('fake_word')
+        with self.assertLogs(
+                logger='general', level='ERROR'
+        ) as general, self.assertLogs(
+            logger='forvo_fails', level='ERROR'
+        ) as forvo:
+            test_word.import_sound()
+        self.assertEqual([*general.output, *forvo.output],
+                         ['ERROR:general:Connection error',
+                          'ERROR:forvo_fails:fake_word'])
+        # что если при скачивании mp3 возникнет ошибка - 6
 
     @fudge.patch('words.management.commands._forvo_importer.'
                  'ForvoImporter.get_html_from_forvo')
-    def test_if_forvo_json_does_not_have_required_keys(self, fake_get_html):
+    def test_if_forvo_json_does_not_have_required_keys1(self, fake_get_html):
         fake_get_html.expects_call().returns(
             ('<html><div class="intro"><pre> {&quot;items&quot;:'
              ' [{&quot;pathmp3&quot;: &quot;mp3/url/&quot;}]} </pre></html>')
@@ -418,6 +510,7 @@ class ForvoImporterTest(TestCase):
     #     test_word = ODImporter('fifth')
     #     test_word.save_article('some_path', 'some_data')
 
+    # TODO move url and expected data to class variables
 
 class ForvoConverterTest(TestCase):
     def test_correctly_format_json(self):
