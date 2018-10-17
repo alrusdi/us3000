@@ -16,4 +16,10 @@ branches:
  only:
   - master
 
+before_script:
+  - mkdir logs
+  - mkdir media
+  - mkdir media/od
+  - mkdir media/sounds
+
 script: python manage.py test
