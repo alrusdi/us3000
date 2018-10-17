@@ -6,6 +6,9 @@ python:
 cache: pip
 sudo: required
 
+env:
+ - DJANGO_SETTINGS_MODULE=main.settings_test
+
 install:
   - pip install -r requirements_dev.txt
 
