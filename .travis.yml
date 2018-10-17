@@ -1,0 +1,16 @@
+language: python
+
+python:
+  - 3.6
+
+cache: pip
+sudo: required
+
+install:
+  - pip install -r requirements_dev.txt
+
+branches:
+ only:
+  - master
+
+script: manage.py test
