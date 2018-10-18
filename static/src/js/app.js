@@ -28,43 +28,34 @@ const vue_app = new Vue({
     el: "#learning_states",
     delimiters: ['[[', ']]'],
     data: {
-        words: [{
-                id: 1,
-                value: "abandon",
-                is_user_know_meaning: false,
-                is_user_know_pronunciation: false,
-                meanings: [
-                    {
-                        id: 1,
-                        value: "Cease to support or look after (someone)",
-                    },
-                    {
-                        id: 2,
-                        value: "Give up completely (a practice or a course of action)",
-                    }
-                ],
-                audio: [
-                    {
-                        id: "audio_1",
-                        src: "/static/build/audio/abandon.mp3",
-                        best: true
-                    },
-                    {
-                        id: "audio_2",
-                        src: "/static/build/audio/abandon_2.mp3",
-                        best: false
-                    }
-                ],
-                ui: {
-                    show_meanings: false,
-                    want_another_audio: false
-                }
-            }
-        ],
+        words: [],
+        is_data_loading: true
     },
     methods: {
         on_sound_play: function (word, audio_id) {
             word.ui.want_another_audio = true;
         }
+    },
+    mounted: function () {
+      var vue_app = this;
+      this.$nextTick(function () {
+        // Make a request for a user with a given ID
+        axios.get('/learning-states')
+          .then(function (response) {
+            console.log(vue_app)
+
+            vue_app.words = response.data.words;
+            console.log(response);
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          })
+          .then(function () {
+            // always executed
+            vue_app.is_data_loading = false;
+          });
+
+      })
     }
 });

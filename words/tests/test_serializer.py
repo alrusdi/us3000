@@ -32,3 +32,15 @@ class SerializerTest(TestCase):
         self.assertEqual(test_word_dict['meanings'][0]['id'], 'meaning_1')
         self.assertEqual(len(test_word_dict['audio']), 1)
         self.assertEqual(len(test_word_dict['meanings']), 1)
+
+    def test_assigns_best_audio_from_preferred_pronunciation_field(self):
+        # создать learning state у которого есть preferred pronunc
+        # вызвать функцию серриальизации
+        # убедиться что нужному аудио назначено best = True
+        pass
+
+    def test_assigns_first_audio_as_best_for_new_learning_state(self):
+        # создать learning state у которого НЕТ preferred pronunc
+        # вызвать функцию серриальизации
+        # убедиться что ПЕРВОМУ аудио назначено best = True
+        pass

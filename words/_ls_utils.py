@@ -69,6 +69,7 @@ def _get_words_to_repeat(number_words_to_repeat, user):
 
 
 def get_words_qs(user):
+    # TODO выбрать все WordLearningState у которых сеанс есть и вернуть, если есть
     known_words_ids = _get_known_words_ids(user)
     all_words_ids = _get_all_words_ids()
     known_words_needed, new_words_needed = _calculate_new_known_words_ratio(
@@ -82,10 +83,12 @@ def get_words_qs(user):
     words_to_repeat = _get_words_to_repeat(known_words_needed, user)
     words_for_learning = random_new_words + words_to_repeat
     random.shuffle(words_for_learning)
-    return WordLearningState.objects.filter(
+    pronc = WordLearningState.objects.filter(
         word_id__in=words_for_learning
     ).prefetch_related(
         'word',
         'word__pronunciation_set',
         'word__meaning_set'
     )
+    # TODO установить всем словам в pronc новый сеанс
+    return pronc

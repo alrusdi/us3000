@@ -19,12 +19,16 @@ class IndexView(TemplateView):
 class LearningStateView(JsonView):
     def get_context_data(self):
         user = self.request.user
-        qs = get_words_qs(user)
+        qs = get_words_qs(user) # TODO
         words_data_list = []
         for word in qs:
             words_data_list.append(serialize_learning_state(word))
         return {"words": words_data_list}
 
+    # TODO добавить в модель WordLearningState сеанс обучения
+    # TODO когда запрашивается список word_learning_states (get_words_qs) что нет слов у которых сеанс не пустой
+    # TODO если такие есть, то возвращать такие слова
+    # TODO если нет, то вести себя стандартным образом, но в каждый WordLearningState добавить сеанс
 
 @method_decorator(login_required, name='dispatch')
 class SetLearningStateView(JsonView):

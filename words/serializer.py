@@ -1,3 +1,6 @@
+from django.conf import settings
+
+
 def serialize_learning_state(learning_state):
     '''
     {
@@ -33,12 +36,18 @@ def serialize_learning_state(learning_state):
             "show_meanings": False,
         }
     )
+    is_preferred_pronunc_found = False
     for p in learning_state.word.pronunciation_set.all():
-        serialized_word['audio'].append({
+        audio = {
             "id": "audio_{}".format(p.pk),
-            "src": p.audio.name,
-            "preferred": p.pk == learning_state.preferred_pronunciation_id
-        })
+            "src": '{}{}'.format(settings.MEDIA_URL, p.audio.name),
+            "best": p.pk == learning_state.preferred_pronunciation_id
+        }
+        serialized_word['audio'].append(audio)
+        if audio['best']:
+            is_preferred_pronunc_found = True
+    if not is_preferred_pronunc_found and serialized_word['audio']:
+        serialized_word['audio'][0]['best'] = True
     for m in learning_state.word.meaning_set.all():
         serialized_word['meanings'].append({
             "id": "meaning_{}".format(m.pk),
