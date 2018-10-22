@@ -9,6 +9,8 @@ class BaseSeleniumTestCase(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        if not settings.TEST_CLIENTSIDE_CODE:
+            return
         if settings.VIRTUAL_DISPLAY:
             display = Display(visible=0, size=(1024, 768))
             display.start()
@@ -17,7 +19,8 @@ class BaseSeleniumTestCase(StaticLiveServerTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.browser.quit()
+        if settings.TEST_CLIENTSIDE_CODE:
+            cls.browser.quit()
         super().tearDownClass()
 
     def force_login(self, user):

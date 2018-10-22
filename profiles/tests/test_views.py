@@ -28,13 +28,16 @@ class RegistrationViewTest(TestCase):
     def test_create_new_user_if_form_valid(self):
         response = self.client.get(self.reg_url)
         data = {'csrfmiddlewaretoken': str(response.context[1].get('csrf_token')),
-                'username': 'User_2',
+                'username': 'user_2',
                 'password': '123456',
                 'password_confirm': '123456'}
         response2 = self.client.post(self.reg_url, data=data)
         self.assertEqual(response2.status_code, 302)
         self.assertEqual(response2._headers['location'][1], '/')
-        User.objects.get(username='User_2')
+        self.assertEqual(
+            User.objects.filter(username='user_2').count(),
+            1
+        )
 
 
 class LoginViewTest(TestCase):

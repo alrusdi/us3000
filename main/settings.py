@@ -137,10 +137,14 @@ STATICFILES_FINDERS = [
 
 # Oxford Dictionary configuration variables
 # https://developer.oxforddictionaries.com/
+# Should be at least two sets of dicts like this:
+# {
+#     'app_id': '',
+#     'app_key': ''
+# }
 
-OXFORD_DICTIONARY_APP_ID = ''
+OXFORD_DICTIONARY_CONFIG = []
 
-OXFORD_DICTIONARY_APP_KEY = ''
 
 # https://docs.djangoproject.com/en/2.1/topics/email/
 
@@ -259,3 +263,5 @@ WORDS_TO_REPEAT_BOUND = 1500
 VIRTUAL_DISPLAY = True
 
 MEDIA_URL = '/media/'
+
+TEST_CLIENTSIDE_CODE = False

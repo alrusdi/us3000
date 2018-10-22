@@ -1,0 +1,25 @@
+language: python
+
+python:
+  - 3.6
+
+cache: pip
+sudo: required
+
+env:
+ - DJANGO_SETTINGS_MODULE=main.settings_test
+
+install:
+  - pip install -r requirements_dev.txt
+
+branches:
+ only:
+  - master
+
+before_script:
+  - mkdir logs
+  - mkdir media
+  - mkdir media/od
+  - mkdir media/sounds
+
+script: python manage.py test
