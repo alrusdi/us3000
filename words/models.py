@@ -120,6 +120,11 @@ class WordLearningState(models.Model):
         null=True,
         blank=True
     )
+    training_session = models.BooleanField(
+        default=False,
+        blank=False,
+        verbose_name='Сеанс обучения'
+    )
 
     def __str__(self):
         return "Статистика слова {}".format(self.word)

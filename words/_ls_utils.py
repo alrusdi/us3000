@@ -70,6 +70,10 @@ def _get_words_to_repeat(number_words_to_repeat, user):
 
 def get_words_qs(user):
     # TODO выбрать все WordLearningState у которых сеанс есть и вернуть, если есть
+    training_session_words = WordLearningState.objects.filter(
+        training_session=True)
+    if training_session_words:
+        return training_session_words
     known_words_ids = _get_known_words_ids(user)
     all_words_ids = _get_all_words_ids()
     known_words_needed, new_words_needed = _calculate_new_known_words_ratio(
@@ -91,4 +95,5 @@ def get_words_qs(user):
         'word__meaning_set'
     )
     # TODO установить всем словам в pronc новый сеанс
+    pronc.update(training_session=True)
     return pronc
