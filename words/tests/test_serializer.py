@@ -26,7 +26,7 @@ class SerializerTest(TestCase):
         ls = test_word.wordlearningstate_set.create(user=user)
         test_word_dict = serialize_learning_state(ls)
         self.assertEqual(test_word_dict['value'], 'test_word')
-        self.assertEqual(test_word_dict['audio'][0]['src'], 'test_mp3')
+        self.assertEqual(test_word_dict['audio'][0]['src'], '/media/test_mp3')
         self.assertEqual(test_word_dict['audio'][0]['id'], 'audio_1')
         self.assertEqual(test_word_dict['meanings'][0]['value'], 'test_value')
         self.assertEqual(test_word_dict['meanings'][0]['id'], 'meaning_1')
@@ -59,9 +59,6 @@ class SerializerTest(TestCase):
         )
         test_word_dict = serialize_learning_state(ls)
         self.assertEqual(test_word_dict['audio'][1]['best'], True)
-        # создать learning state у которого есть preferred pronunc
-        # вызвать функцию серриальизации
-        # убедиться что нужному аудио назначено best = True
 
     def test_assigns_first_audio_as_best_for_new_learning_state(self):
         test_word = Word.objects.create(
@@ -88,6 +85,3 @@ class SerializerTest(TestCase):
         )
         test_word_dict = serialize_learning_state(ls)
         self.assertEqual(test_word_dict['audio'][0]['best'], True)
-        # создать learning state у которого НЕТ preferred pronunc
-        # вызвать функцию серриальизации
-        # убедиться что ПЕРВОМУ аудио назначено best = True
