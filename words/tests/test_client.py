@@ -18,6 +18,7 @@ class IndexTest(BaseSeleniumTestCase):
 
     def test_show_meanings(self):
         if not settings.TEST_CLIENTSIDE_CODE:
+            print('NOT test_show_meanings')
             return
         print('test_show_meanings')
         password = 'test12345678'
@@ -34,6 +35,7 @@ class IndexTest(BaseSeleniumTestCase):
 
     def test_show_main_page(self):
         if not settings.TEST_CLIENTSIDE_CODE:
+            print('NOT test_show_main_page')
             return
         print('test_show_main_page')
         screenshot_name = '{}_{}_'.format(__name__, date.today())
