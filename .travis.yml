@@ -11,12 +11,14 @@ python:
 cache: pip
 
 env:
- - DJANGO_SETTINGS_MODULE=main.settings_test
+  - DJANGO_SETTINGS_MODULE=main.settings_test
+
+before_install:
+  - wget https://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip
+  - unzip chromedriver_linux64.zip -d test/driver/
 
 install:
   - pip install -r requirements_dev.txt
-  - wget https://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip
-  - unzip chromedriver_linux64.zip -d test/driver/
 
 branches:
  only:
