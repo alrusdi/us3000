@@ -28,7 +28,7 @@ before_script:
   - mkdir driver
   - wget https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip
   - unzip chromedriver_linux64.zip -d "${HOME}/bin/"
-  - ln --symbolic /usr/bin "${HOME}/bin/chromedriver"
+  - ln --symbolic "${HOME}/bin/chromedriver" /usr/bin
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
