@@ -1,10 +1,18 @@
+sudo: required
+dist: trusty
+addons:
+  apt:
+    sources:
+      - google-chrome
+    packages:
+      - google-chrome-stable
+
 language: python
 
 python:
   - 3.6
 
 cache: pip
-sudo: required
 
 env:
  - DJANGO_SETTINGS_MODULE=main.settings_test
@@ -22,4 +30,7 @@ before_script:
   - mkdir media/od
   - mkdir media/sounds
 
-script: python manage.py test
+script:
+  - xvfb-run --server-args="-screen 0 1024x768x24" make test
+  - sleep 3 # give xvfb some time to start
+  - python manage.py test
