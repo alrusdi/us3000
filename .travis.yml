@@ -29,7 +29,8 @@ before_script:
   - mkdir media
   - mkdir media/od
   - mkdir media/sounds
-  - xvfb-run --server-args="-screen 0 1024x768x24" make test
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 
 
 script:
