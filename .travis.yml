@@ -27,7 +27,7 @@ before_script:
   - mkdir media/sounds
   - mkdir driver
   - wget https://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip
-  - unzip chromedriver_linux64.zip -d test/driver/
+  - unzip chromedriver_linux64.zip -d driver/
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
