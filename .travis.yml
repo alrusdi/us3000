@@ -1,12 +1,7 @@
 sudo: required
 dist: trusty
 addons:
-  apt:
-    sources:
-      - google-chrome
-    packages:
-      - google-chrome-stable
-      - chromium-chromedriver
+  chrome: stable
 
 language: python
 
@@ -20,6 +15,8 @@ env:
 
 install:
   - pip install -r requirements_dev.txt
+  - wget https://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip
+  - unzip chromedriver_linux64.zip -d test/driver/
 
 branches:
  only:
