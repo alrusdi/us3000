@@ -26,11 +26,11 @@ before_script:
   - mkdir media/od
   - mkdir media/sounds
   - mkdir driver
-  - wget https://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip
-  - unzip chromedriver_linux64.zip -d driver/
+  - wget https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip
+  - unzip chromedriver_linux64.zip -d bin/
+  - ln --symbolic /usr/lib/chromium-browser/chromedriver "${HOME}/bin/chromedriver"
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-
 
 script:
   - sleep 3 # give xvfb some time to start
