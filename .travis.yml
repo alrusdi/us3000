@@ -6,6 +6,7 @@ addons:
       - google-chrome
     packages:
       - google-chrome-stable
+      - chromium-chromedriver
 
 language: python
 
