@@ -224,6 +224,10 @@ LOGGING = {
         }
     },
     'loggers': {
+        'django.request': {
+            'handlers': ['general_log'],
+            'propagate': False,
+        },
         'forvo_fails': {
             'handlers': ['forvo_log'],
             'level': 'INFO',

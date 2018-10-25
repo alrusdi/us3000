@@ -23,9 +23,13 @@ class BaseSeleniumTestCase(StaticLiveServerTestCase):
             cls.browser.quit()
         super().tearDownClass()
 
-    def force_login(self, user):
-        url = '{}{}'.format(self.live_server_url, reverse('autologin', kwargs={'id': user.pk}))
+    def visit_page(self, path):
+        url = '{}{}'.format(self.live_server_url, path)
         self.browser.visit(url)
+
+    def force_login(self, user):
+        path = reverse('autologin', kwargs={'id': user.pk})
+        self.visit_page(path)
         return user
 
     def find_element(self, css_selector):

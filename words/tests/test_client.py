@@ -3,6 +3,8 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.test import override_settings
+
 from main.base_selenium_test_case import BaseSeleniumTestCase
 from main.settings import BASE_DIR
 
@@ -16,6 +18,9 @@ class IndexPageObject:
 class IndexTest(BaseSeleniumTestCase):
     page_object_class = IndexPageObject
 
+    @override_settings(
+        DEBUG=True
+    )
     def test_show_meanings(self):
         if not settings.TEST_CLIENTSIDE_CODE:
             print('NOT test_show_meanings')
@@ -27,7 +32,9 @@ class IndexTest(BaseSeleniumTestCase):
             email='{}@debugmail.io'.format('test_username'),
             password=password
         )
+
         self.force_login(user)
+        self.visit_page('/')
         link = self.find_element(self.page_object.show_meanings_link)
         link.click()
         meanings_container = self.find_element(self.page_object.meanings_container)
