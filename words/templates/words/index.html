@@ -18,6 +18,7 @@
             <div class="loading" v-show="is_data_loading">
                 Данные загружаются
             </div>
+            <div uk-alert class="uk-alert-danger" v-show="is_server_error">Ошибка сервера при загрузке данных</div>
             <div v-show="!is_data_loading">
                 <div class="ls-item uk-card uk-card-body uk-card-default uk-card-small uk-margin-bottom uk-margin-small" v-for="word in words">
                     <div class="uk-child-width-expand@s uk-text-center" uk-grid>
@@ -38,8 +39,8 @@
                                 </div>
                                 <div class="ls-yesno">
                                     <div class="uk-button-group">
-                                        <button class="uk-button uk-button-small" v-on:click="word.is_user_know_pronunciation=true" v-bind:class="{'uk-button-success': word.is_user_know_pronunciation}">YES</button>
-                                        <button class="uk-button uk-button-small" v-on:click="word.is_user_know_pronunciation=false" v-bind:class="{'uk-button-danger': !word.is_user_know_pronunciation}">NO</button>
+                                        <button class="uk-button uk-button-small" v-on:click="set_learning_state(word, 'pronunciation', 1)" v-bind:class="{'uk-button-success': word.is_user_know_pronunciation}">YES</button>
+                                        <button class="uk-button uk-button-small" v-on:click="set_learning_state(word, 'pronunciation', 0)" v-bind:class="{'uk-button-danger': !word.is_user_know_pronunciation}">NO</button>
                                     </div>
                                 </div>
                             </div>
@@ -49,8 +50,8 @@
                             <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know what does it mean?</div>
                             <div class="ls-yesno">
                                 <div class="uk-button-group">
-                                    <button class="uk-button uk-button-small" v-on:click="word.is_user_know_meaning=true" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
-                                    <button class="uk-button uk-button-small" v-on:click="word.is_user_know_meaning=false"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
+                                    <button class="uk-button uk-button-small" v-on:click="set_learning_state(word, 'meaning', 1)" v-bind:class="{'uk-button-success': word.is_user_know_meaning}">YES</button>
+                                    <button class="uk-button uk-button-small" v-on:click="set_learning_state(word, 'meaning', 0)"  v-bind:class="{'uk-button-danger': !word.is_user_know_meaning}">NO</button>
                                 </div>
                             </div>
                             <a class="uk-link uk-text-small" data="test-show-meanings-link" v-on:click="word.ui.show_meanings=!word.ui.show_meanings">Not sure?</a>
@@ -65,6 +66,7 @@
                         </div>
                     </div>
                 </div>
+                <button class="uk-button uk-button-primary uk-align-center" v-on:click="end_session()">Завершить сеанс</button>
             </div>
         </div>
     </div>

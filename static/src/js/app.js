@@ -29,11 +29,56 @@ const vue_app = new Vue({
     delimiters: ['[[', ']]'],
     data: {
         words: [],
-        is_data_loading: true
+        is_data_loading: true,
+        is_server_error: false
     },
     methods: {
         on_sound_play: function (word, audio_id) {
             word.ui.want_another_audio = true;
+        },
+        get_preferred_pron: function (word) {
+            var preferred_pron;
+            word.audio.forEach(function (audio) {
+                if (audio.best)
+                {
+                    preferred_pron = audio.id.replace('audio_', '');
+                }
+            });
+            return preferred_pron
+        },
+        set_server_call: function (word, target, value) {
+            if (target === 'pronunciation') {
+                word.ui.pronunciation_server_call = (value === 1);
+            } else {
+                word.ui.meaning_server_call = (value === 1);
+            }
+        },
+        set_learning_state: function (word, target, value) {
+            var vue_app = this;
+
+            // Block for subsequent server calls
+            if (word.ui.meaning_server_call && target === 'meaning') return;
+            if (word.ui.pronunciation_server_call && target === 'pronunciation') return;
+            vue_app.set_server_call(word, target, 1);
+
+            var preferred_pron = this.get_preferred_pron(word);
+            axios.get('change-learning-state/' + target + '/' + word.id + '/' + value + '/' + preferred_pron + '/')
+            .then (function (response) {
+                if (target === 'pronunciation') {
+                    word.is_user_know_pronunciation = (value === 1)
+                } else {
+                    word.is_user_know_meaning = (value === 1)
+                }
+            })
+            .catch (function (error) {
+                // TODO react somehow to server error
+            })
+            .then (function () {
+                vue_app.set_server_call(word, target, 0)
+            })
+        },
+        end_session: function () {
+            // TODO make call to server view refresh page
         }
     },
     mounted: function () {
@@ -49,7 +94,7 @@ const vue_app = new Vue({
           })
           .catch(function (error) {
             // handle error
-            console.log(error);
+            vue_app.is_server_error = true;
           })
           .then(function () {
             // always executed

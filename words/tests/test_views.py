@@ -111,3 +111,8 @@ class SetLearningStateViewTest(TestCase):
     def test_52(self):
         pass
         # найти метод который смотрит все запросы к БД и если есть лищний - то ругается
+
+    def test_sets_only_given_word(self):
+        # создать несколько word learning states, сходить по url set learning state,
+        # убедиться, что обновилась только одна нужная запись
+        pass

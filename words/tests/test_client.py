@@ -53,3 +53,7 @@ class IndexTest(BaseSeleniumTestCase):
         )
         self.force_login(user)
         self.browser.screenshot(screenshot_path)
+
+    def test_shows_error_message_if_server_down(self):
+        # Запатчить вьюшку, что бы она рэйзила исключение (get_context_data)
+        pass

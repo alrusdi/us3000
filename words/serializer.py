@@ -34,6 +34,8 @@ def serialize_learning_state(learning_state):
         audio=[],
         ui={
             "show_meanings": False,
+            "meaning_server_call": False,
+            "pronunciation_server_call": False,
         }
     )
     is_preferred_pronunc_found = False

@@ -52,8 +52,8 @@ class SetLearningStateView(JsonView):
             )
             if value == 1 and preferred_pron:
                 fields_to_update['preferred_pronunciation'] = preferred_pron
-            WordLearningState.objects.update(**fields_to_update)
+            WordLearningState.objects.filter(pk=word_ls_id).update(**fields_to_update)
         if (fieldname_value == 'meaning' and
                 word_data.is_user_know_meaning is not value):
-            WordLearningState.objects.update(is_user_know_meaning=value)
+            WordLearningState.objects.filter(pk=word_ls_id).update(is_user_know_meaning=value)
         return {}
