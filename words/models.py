@@ -1,3 +1,7 @@
+import json
+import os
+
+from django.conf import settings
 from django.db import models
 from jsonfield import JSONField
 
@@ -86,6 +90,11 @@ class Pronunciation(models.Model):
         verbose_name_plural = "Произношения"
 
 
+class PronunciationMeta(object):
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
 class WordLearningState(models.Model):
     word = models.ForeignKey(
         Word,
@@ -113,18 +122,75 @@ class WordLearningState(models.Model):
         auto_now_add=True,
         verbose_name='Дата последнего показа'
     )
-    preferred_pronunciation = models.ForeignKey(
-        Pronunciation,
-        on_delete=models.CASCADE,
-        verbose_name='Предпочитаемое произношение',
-        null=True,
-        blank=True
+    preferred_pronunciation = models.PositiveIntegerField(
+        default=0,
+        verbose_name='forvo id препочтительного произношения',
     )
     training_session = models.BooleanField(
         default=False,
         blank=False,
         verbose_name='Сеанс обучения'
     )
+
+    def _get_pronunciations_meta(self, word_str):
+        forvo_meta_path = os.path.join(
+            settings.BASE_DIR, 'media', 'forvo', '{}.json'.format(word_str)
+        )
+        with open(forvo_meta_path, 'r') as f:
+            data = json.load(f)
+        return data
+
+    def _get_sounds(self, word_str):
+        ret = []
+        sounds_path = os.path.join(settings.BASE_DIR, 'media', 'sounds', word_str)
+        items = list(os.listdir(sounds_path))
+        items.sort()
+        for item in items:
+            if item.endswith('.mp3'):
+                ret.append('{}{}/{}/{}'.format(settings.MEDIA_URL, 'sounds', word_str, item))
+        return ret
+
+    def get_pronunciations(self):
+        word = self.word
+        forvo_meta = self._get_pronunciations_meta(word.value)
+        if not forvo_meta:
+            return []
+
+        ret = []
+        ct = 0
+        sounds = self._get_sounds(word.value)
+        slen = len(sounds)
+        prefered_detected = False
+        for item in forvo_meta.get('items') or []:
+
+            if item.get('code', '') != 'en' or item.get(
+                    'country', '') != 'United States':
+                continue
+
+            if ct > slen-1:
+                break
+
+            sound_file = sounds[ct]
+
+            is_best = self.preferred_pronunciation == item['id']
+
+            if is_best:
+                prefered_detected = True
+
+            ret.append({
+                'id': item['id'],
+                'by': item['username'],
+                'sex': item['sex'],
+                'src': sound_file,
+                'best': is_best
+            })
+
+            ct += 1
+            if ct == 4:
+                break
+        if ret and not prefered_detected:
+            ret[0]['best'] = True
+        return ret
 
     def __str__(self):
         return "Статистика слова {}".format(self.word)

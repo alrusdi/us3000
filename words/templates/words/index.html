@@ -4,9 +4,18 @@
 
 {% block content %}
 <script type="text/template" id="audio-template">
-<div class="ls-audio" v-show="best">
-    <button class="uk-icon-button uk-margin-small-right uk-button-primary"  v-on:click="play()" uk-icon="play"></button>
-    <audio :id="id" :src="src"></audio>
+<div class="audio-cnt">
+    <div class="ls-audio" v-for="item in items" v-show="item.best">
+        <button class="uk-icon-button uk-margin-small-right uk-button-primary"  v-on:click="play(item.id)" uk-icon="play"></button>
+        <audio :id="item.id" :src="item.src"></audio>
+    </div>
+    <a class="uk-link uk-text-small" v-show="show_more_audio_link" v-on:click="show_other_audios">Bad sound?</a>
+    <div class="other-sounds"  v-show="show_other_sounds_dlg">
+        <div class="other-audio-item" v-for="item in items">
+            <a class="uk-link uk-text-small" v-on:click="change_audio(item.id)">[[ item.by ]] [[ item.sex ]] [[ item.best ]]</a>
+        </div>
+        <button class="uk-button uk-button-small" v-on:click="hide_other_audio_dlg()">ok</button>
+    </div>
 </div>
 </script>
 
@@ -29,13 +38,12 @@
                             <div class="uk-text-small uk-margin-bottom uk-margin-small">Do you know how to pronounce it?</div>
                             <div class="uk-text-center uk-grid-small" uk-grid>
                                 <div class="uk-width-1-4 ls-audio-items">
-                                    <pronunciation
-                                            v-for="audio in word.audio"
-                                            v-bind="audio"
-                                            v-bind:key="audio.id"
-                                            v-on:sound-playing="on_sound_play(word, audio.id)"
-                                    ></pronunciation>
-                                    <a class="uk-link uk-text-small" v-show="word.ui.want_another_audio">Bad sound?</a>
+                                    <pronunciations
+                                            v-bind:items="word.audio"
+                                            v-bind:key="word.id"
+                                            v-on:sound-playing="on_sound_play"
+                                    ></pronunciations>
+
                                 </div>
                                 <div class="ls-yesno">
                                     <div class="uk-button-group">

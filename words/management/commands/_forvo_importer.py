@@ -156,12 +156,24 @@ class ForvoImporter(object):
         mp3_abs_path = self.make_mp3_abs_path(word_dir_path, item_number)
         self.save_mp3(mp3_abs_path, mp3)
 
+    def save_forvo_json(self, json_file, forvo_json):
+        data = json.dumps(forvo_json, ensure_ascii=False, sort_keys=True, indent=4)
+        with open(json_file, 'w') as f:
+            f.write(data)
+
     def import_sound(self):
         sounds_dir = self.make_abs_sounds_dir_path()
-        if self._check_if_sounds_exist(sounds_dir):
+
+        # Save raw json data
+        json_dir = sounds_dir.replace('sounds', 'forvo')
+        if not os.path.exists(json_dir):
+            self.create_word_dir(json_dir)
+
+        json_file = os.path.join(json_dir, '{}.json'.format(self.word))
+        if os.path.exists(json_file):
             return
+
         html = self.get_html_from_forvo()
-        # print(html)
         if html is None:
             return
         raw_json = self.get_raw_json_from_html(html)
@@ -170,7 +182,10 @@ class ForvoImporter(object):
         forvo_json = self.normalize_raw_json(raw_json)
         if forvo_json is None:
             return
+        self.save_forvo_json(json_file, forvo_json)
+
         items = self.get_items_from_forvo_json(forvo_json)
+
         if items is None:
             return
         item_number = 0

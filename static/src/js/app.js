@@ -5,21 +5,53 @@ const get_template = function (template_name) {
     return tpl;
 };
 
-Vue.component('pronunciation', {
+Vue.component('pronunciations', {
     delimiters: ['[[', ']]'],
-    props: ["id", "src", "best"],
+    props: ['items'],
     data: function () {
         return {
-            already_playing: false
+            already_playing: false,
+            current_audio: false,
+            show_more_audio_link: false,
+            show_other_sounds_dlg: false
         }
     },
     template: get_template("audio-template"),
     methods: {
-        play: function () {
-            var audio_el = document.getElementById(this.id);
+        play: function (audio_id) {
+            for (var i in this.items) {
+                if (this.items[i].id == audio_id) {
+                    this.current_audio = this.items[i];
+                }
+            }
+            var audio_el = document.getElementById(audio_id);
             audio_el.play();
-            this.$emit('sound-playing', this.id);
+            this.$emit('sound-playing', this);
+        },
+        show_other_audios: function () {
+            this.show_more_audio_link = false;
+            this.show_other_sounds_dlg = true;
+        },
+        change_audio: function (audio_id) {
+            for (var i in this.items) {
+                if (this.items[i].id == audio_id) {
+                    this.current_audio.best=false;
+                    this.current_audio = this.items[i];
+                    this.items[i].best = true;
+                    this.play(this.current_audio.id);
+                }
+            }
+        },
+        hide_other_audio_dlg: function () {
+            this.show_more_audio_link = true;
+            this.show_other_sounds_dlg = false;
         }
+    },
+    mounted: function () {
+        for (var i in this.items) {
+            if (this.items[i].best) this.current_audio = this.items[i];
+        }
+        this.show_more_audio_link = this.items.length > 1;
     }
 });
 
@@ -33,8 +65,9 @@ const vue_app = new Vue({
         is_server_error: false
     },
     methods: {
-        on_sound_play: function (word, audio_id) {
-            word.ui.want_another_audio = true;
+        on_sound_play: function (audio_component) {
+            console.log('Now playing', audio_component.current_audio.id);
+            console.log('Now playing', audio_component);
         },
         get_preferred_pron: function (word) {
             var preferred_pron;
@@ -82,25 +115,22 @@ const vue_app = new Vue({
         }
     },
     mounted: function () {
-      var vue_app = this;
-      this.$nextTick(function () {
-        // Make a request for a user with a given ID
-        axios.get('/learning-states')
-          .then(function (response) {
-            console.log(vue_app)
+        var vue_app = this;
+        this.$nextTick(function () {
+            // Make a request for a user with a given ID
+            axios.get('/learning-states/')
+                .then(function (response) {
+                    vue_app.words = response.data.words;
+                })
+                .catch(function (error) {
+                    // handle error
+                    vue_app.is_server_error = true;
+                })
+                .then(function () {
+                    // always executed
+                    vue_app.is_data_loading = false;
+                });
 
-            vue_app.words = response.data.words;
-            console.log(response);
-          })
-          .catch(function (error) {
-            // handle error
-            vue_app.is_server_error = true;
-          })
-          .then(function () {
-            // always executed
-            vue_app.is_data_loading = false;
-          });
-
-      })
+        })
     }
 });
