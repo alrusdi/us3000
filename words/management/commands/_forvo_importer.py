@@ -155,6 +155,7 @@ class ForvoImporter(object):
             self.create_word_dir(word_dir_path)
         mp3_abs_path = self.make_mp3_abs_path(word_dir_path, item_number)
         self.save_mp3(mp3_abs_path, mp3)
+        return True
 
     def save_forvo_json(self, json_file, forvo_json):
         data = json.dumps(forvo_json, ensure_ascii=False, sort_keys=True, indent=4)
@@ -182,7 +183,6 @@ class ForvoImporter(object):
         forvo_json = self.normalize_raw_json(raw_json)
         if forvo_json is None:
             return
-        self.save_forvo_json(json_file, forvo_json)
 
         items = self.get_items_from_forvo_json(forvo_json)
 
@@ -193,7 +193,10 @@ class ForvoImporter(object):
             if item.get('code', '') != 'en' or item.get(
                     'country', '') != 'United States':
                 continue
-            self.save_result(item, item_number)
+
+            res = self.save_result(item, item_number)
+            if res:
+                self.save_forvo_json(json_file, forvo_json)
             item_number += 1
             if item_number > 4:
                 break

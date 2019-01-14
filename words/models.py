@@ -136,6 +136,8 @@ class WordLearningState(models.Model):
         forvo_meta_path = os.path.join(
             settings.BASE_DIR, 'media', 'forvo', '{}.json'.format(word_str)
         )
+        if not os.path.exists(forvo_meta_path):
+            return
         with open(forvo_meta_path, 'r') as f:
             data = json.load(f)
         return data

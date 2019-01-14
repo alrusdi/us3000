@@ -25,6 +25,7 @@ before_script:
   - mkdir media
   - mkdir media/od
   - mkdir media/sounds
+  - mkdir media/forvo
   - mkdir driver
   - mkdir words/tests/screenshots
   - wget https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip

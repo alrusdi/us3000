@@ -78,21 +78,18 @@ class SetLearningStateViewTest(TestCase):
             spelling='spelling',
             raw_od_article='raw_od_article'
         )
-        pronunciation = test_word.pronunciation_set.create(
-            audio='test_mp3'
-        )
         ls = test_word.wordlearningstate_set.create(
             user=self.user
         )
-        self.assertIsNone(ls.preferred_pronunciation)
+        self.assertEqual(ls.preferred_pronunciation, 0)
         url = reverse('set_learning_state', kwargs={'fieldname': 'pronunciation',
                                                     'id': ls.pk,
                                                     'value': 1,
-                                                    'preferred_pron': pronunciation.pk})
+                                                    'preferred_pron': '123456'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         ls.refresh_from_db()
-        self.assertEqual(ls.preferred_pronunciation_id, pronunciation.pk)
+        self.assertEqual(ls.preferred_pronunciation, 123456)
 
     def test_does_not_set_unexpected_pronunciation(self):
         #  Проверить что не устанавливается несуществующее произношение
@@ -108,7 +105,7 @@ class SetLearningStateViewTest(TestCase):
     def test_user_can_not_change_ls_of_other_users(self):
         pass
 
-    def test_52(self):
+    def test_optimization(self):
         pass
         # найти метод который смотрит все запросы к БД и если есть лищний - то ругается
 

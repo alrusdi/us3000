@@ -137,9 +137,11 @@ class ForvoImporterTest(TestCase):
                  'words.management.commands._forvo_importer.'
                  'ForvoImporter.is_path_exist',
                  'words.management.commands._forvo_importer.'
-                 'ForvoImporter.save_mp3')
+                 'ForvoImporter.save_mp3',
+                 'words.management.commands._forvo_importer.ForvoImporter.save_forvo_json'
+                 )
     def test_positive_case(self, fake_post, fake_get,
-                           fake_is_path_exist, fake_save):
+                           fake_is_path_exist, fake_save, fake_save_json):
         url = 'api.forvo.com'
         expected_data = {
             "action": "word-pronunciations",
@@ -166,6 +168,7 @@ class ForvoImporterTest(TestCase):
         fake_get.expects_call().returns(FakeRequestsResponse(b'0x11'))
         fake_is_path_exist.expects_call().returns(True)
         fake_save.expects_call().returns(None)
+        fake_save_json.expects_call().returns(True)
         test_word = ForvoImporter('fake_word')
         res = test_word.import_sound()
         # TODO check if file saved
@@ -325,98 +328,6 @@ class ForvoImporterTest(TestCase):
                           'ERROR:forvo_fails:fake_word'])
         # что будет если json не корректный - 5
 
-    @fudge.patch('words.management.commands._forvo_importer.requests.post')
-    def test_1_if_forvo_json_does_not_have_required_keys(self, fake_post):
-        url = 'api.forvo.com'
-        expected_data = {
-            "action": "word-pronunciations",
-            "format": "json",
-            "id_lang_speak": "39",
-            "id_order": "",
-            "limit": "",
-            "rate": "",
-            "send": "",
-            "username": "",
-            "word": "fake_word"
-        }
-        html_response = ('<div class="intro"><pre> {&quot;items&quot;:'
-                         ' [{&quot;pathmp3&quot;: &quot;mp3_url&quot;, '
-                         '&quot;not_code&quot;: &quot;en&quot;,'
-                         '&quot;not_country1&quot;: &quot;United States&quot;}]} '
-                         '</pre></div>')
-        fake_post.expects_call().with_args(
-            arg.contains(url), data=expected_data).returns(
-            FakeRequestsResponse(html_response)
-        )
-        test_word = ForvoImporter('fake_word')
-        test_word.import_sound()
-        # 7
-
-    @fudge.patch('words.management.commands._forvo_importer.requests.post',
-                 'words.management.commands._forvo_importer.requests.get',
-                 'words.management.commands._forvo_importer.os.mkdir')
-    def test_11(self, fake_post, fake_get, fake_mkdir):
-        url = 'api.forvo.com'
-        expected_data = {
-            "action": "word-pronunciations",
-            "format": "json",
-            "id_lang_speak": "39",
-            "id_order": "",
-            "limit": "",
-            "rate": "",
-            "send": "",
-            "username": "",
-            "word": "fake_word1"
-        }
-        mp3_file = b'1234567890'
-        html_response = ('<div class="intro"><pre> {&quot;items&quot;:'
-                         ' [{&quot;pathmp3&quot;: &quot;mp3_url&quot;, '
-                         '&quot;code&quot;: &quot;en&quot;,'
-                         '&quot;country&quot;: &quot;United States&quot;}]} '
-                         '</pre></div>')
-        fake_post.expects_call().with_args(
-            arg.contains(url), data=expected_data).returns(
-            FakeRequestsResponse(html_response)
-        )
-        fake_get.expects_call().returns(
-            FakeRequestsResponse(mp3_file)
-        )
-        fake_mkdir.expects_call().with_args()
-        test_word = ForvoImporter('fake_word1')
-        test_word.import_sound()
-        # with self.assertLogs(
-        #         logger='general', level='ERROR'
-        # ) as general, self.assertLogs(
-        #     logger='forvo_fails', level='ERROR'
-        # ) as forvo:
-        #     test_word.import_sound()
-        # self.assertEqual([*general.output, *forvo.output],
-        #                  ['ERROR:general:Connection error',
-        #                   'ERROR:forvo_fails:fake_word'])
-        # проверить что создается директория с именем конкретного слова - ???
-
-    def test_12(self):
-        # что будет, если директория с именем конкретного слова уже существует - ???
-        pass
-
-    @fudge.patch('words.management.commands._forvo_importer.ForvoImporter'
-                 '.is_path_exist')
-    def test_if_dir_path_exists(self, fake_is_path_exist):
-        fake_is_path_exist.expects_call().returns(False)
-        test_word = ForvoImporter('seventh')
-        res = test_word.is_path_exist('not/exist/mp3/path')
-        self.assertEqual(res, False)
-        # проверить, существует ли путь - ???
-
-    @fudge.patch('words.management.commands._forvo_importer.'
-                 'ForvoImporter.is_there_dir_write_permissions')
-    def test_write_permission_of_working_dir(self, fake_write_permissions):
-        fake_write_permissions.expects_call().returns(False)
-        test_word = ForvoImporter('seventh')
-        res = test_word.is_there_dir_write_permissions('not/exist/mp3/path')
-        self.assertEqual(res, False)
-        # проверить, есть ли права записи - ???
-
     def test_if_abs_mp3_path_is_created_correctly(self):
         test_word = ForvoImporter('sixth')
         test_path = test_word.make_mp3_abs_path('audio', 33)
@@ -460,66 +371,4 @@ class ForvoImporterTest(TestCase):
                          ['ERROR:general:Connection error',
                           'ERROR:forvo_fails:fake_word'])
         # что если при скачивании mp3 возникнет ошибка - 6
-
-    @fudge.patch(
-        'words.management.commands._forvo_importer.ForvoImporter.get_html_from_forvo',
-        'words.management.commands._forvo_importer.ForvoImporter._check_if_sounds_exist'
-    )
-    def test_if_forvo_json_does_not_have_required_keys1(self, fake_get_html, fake_check):
-        fake_check.expects_call().returns(False)
-        fake_get_html.expects_call().returns(
-            ('<html><div class="intro"><pre> {&quot;items&quot;:'
-             ' [{&quot;pathmp3&quot;: &quot;mp3/url/&quot;}]} </pre></html>')
-        )
-        test_word = ForvoImporter('last')
-        res = test_word.import_sound()
-        self.assertEqual(res, None)
-        # что будет, если в словаре items у ключей code и
-        # country отсутствуют занчения en и United States соответственно - пофиксить
-
-    @fudge.patch('builtins.open')
-    def test_save_proper_data_to_file(self, fake_open):
-
-        class FakeFile:
-            def write(self, *args, **kwargs):
-                assert 'some_data' in args
-
-        class FakeContextManager:
-            def __enter__(self):
-                return FakeFile()
-
-            def __exit__(self, *args):
-                pass
-
-        fake_open.expects_call().with_args('some_path', 'wb').returns(
-            FakeContextManager())
-        test_word = ForvoImporter('fifth')
-        test_word.save_mp3('some_path', 'some_data')
-        # Убедиться что функция 'save_result' сохраняет файлы - пофиксить
-        # в нужную директорию
-        pass
-
-    # @fudge.patch('builtins.open')
-    # def test_save_proper_data_to_file(self, fake_open):
-    #     class FakeFile:
-    #         def write(self, *args, **kwargs):
-    #             assert 'some_data' in args
-    #
-    #     class FakeContextManager:
-    #         def __enter__(self):
-    #             return FakeFile()
-    #
-    #         def __exit__(self, *args):
-    #             pass
-    #     fake_open.expects_call().with_args('some_path', 'w').returns(
-    #         FakeContextManager())
-    #     test_word = ODImporter('fifth')
-    #     test_word.save_article('some_path', 'some_data')
-
-    # TODO move url and expected data to class variables
-
-
-class ForvoConverterTest(TestCase):
-    def test_correctly_format_json(self):
-        pass
 
