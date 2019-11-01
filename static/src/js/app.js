@@ -65,10 +65,6 @@ const vue_app = new Vue({
         is_server_error: false
     },
     methods: {
-        on_sound_play: function (audio_component) {
-            console.log('Now playing', audio_component.current_audio.id);
-            console.log('Now playing', audio_component);
-        },
         get_preferred_pron: function (word) {
             var preferred_pron;
             word.audio.forEach(function (audio) {
@@ -111,7 +107,11 @@ const vue_app = new Vue({
             })
         },
         end_session: function () {
-            // TODO make call to server view refresh page
+            axios.get('/finish-session/')
+                .then(function (response) {
+                    console.log(response);
+                })
+
         }
     },
     mounted: function () {

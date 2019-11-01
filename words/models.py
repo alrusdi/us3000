@@ -145,6 +145,9 @@ class WordLearningState(models.Model):
     def _get_sounds(self, word_str):
         ret = []
         sounds_path = os.path.join(settings.BASE_DIR, 'media', 'sounds', word_str)
+        print(sounds_path)
+        if not os.path.exists(sounds_path):
+            return []
         items = list(os.listdir(sounds_path))
         items.sort()
         for item in items:

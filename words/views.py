@@ -53,3 +53,24 @@ class SetLearningStateView(JsonView):
                 word_data.is_user_know_meaning is not value):
             WordLearningState.objects.filter(pk=word_ls_id).update(is_user_know_meaning=value)
         return {}
+
+
+@method_decorator(login_required, name='dispatch')
+class FinishSessionView(JsonView):
+    def get_context_data(self):
+        session_words = list(WordLearningState.objects.filter(
+            user=self.request.user, training_session=True)
+        )
+        stats = {
+            "total_words_count": len(session_words),
+            "new_words_count": 0,
+
+        }
+        for w in session_words:
+            if w.usage_count < 2:
+                stats["new_words_count"] += 1
+
+        WordLearningState.objects.filter(
+            user=self.request.user, training_session=True
+        ).update(training_session=False)
+        return stats
