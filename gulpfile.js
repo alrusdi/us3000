@@ -27,3 +27,7 @@ gulp.task('js', function() {
 gulp.task('watch', function() {
     return gulp.watch('static/src/**', ['sass', 'js', 'vendor'])
 });
+
+gulp.task('all', ['sass', 'vendor', 'js'], function(){
+    
+})
