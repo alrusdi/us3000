@@ -1,4 +1,4 @@
-Django==2.2.24
+Django==2.2.28
 requests==2.22.0
 ConcurrentLogHandler==0.9.1
 django-widget-tweaks==1.4.2
